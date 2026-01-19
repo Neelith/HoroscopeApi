@@ -1,0 +1,48 @@
+services:
+  postgres-compose:
+    image: postgres:17
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./.containers/postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+  redis-compose:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - 6379:6379
+  postgres-keycloak-compose:
+    image: postgres:17
+    container_name: keycloak-postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./.containers/keycloak/postgres:/var/lib/postgresql/data
+    ports:
+      - 5433:5432
+  keycloak-compose:
+    image: quay.io/keycloak/keycloak:26.2.5
+    container_name: keycloak
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL_HOST=postgres-keycloak-compose
+      - KC_DB_URL_PORT=5432
+      - KC_DB_URL_DATABASE=postgres
+      - KC_DB_USERNAME=postgres
+      - KC_DB_PASSWORD=postgres
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+    command: start-dev --import-realm
+    ports:
+      - 5000:8080
+    volumes:
+      - ./.containers/keycloak/import:/opt/keycloak/data/import
+      - ./.containers/keycloak/providers:/opt/keycloak/providers
+    depends_on:
+      - postgres-keycloak-compose
