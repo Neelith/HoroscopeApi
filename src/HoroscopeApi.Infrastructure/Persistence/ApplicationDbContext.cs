@@ -2,6 +2,8 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using HoroscopeApi.Application.Infrastructure.Persistance;
 using HoroscopeApi.Application.Infrastructure.User;
+using HoroscopeApi.Domain.Horoscopes;
+using HoroscopeApi.Domain.ZodiacSigns;
 using HoroscopeApi.Shared.Domain;
 using HoroscopeApi.Shared.Time;
 
@@ -13,6 +15,9 @@ namespace HoroscopeApi.Infrastructure.Persistence
         ICurrentUserService currentUserService)
         : DbContext(options), IUnitOfWork
     {
+        public DbSet<ZodiacSignInfo> ZodiacSigns { get; set; }
+        public DbSet<Horoscope> Horoscopes { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

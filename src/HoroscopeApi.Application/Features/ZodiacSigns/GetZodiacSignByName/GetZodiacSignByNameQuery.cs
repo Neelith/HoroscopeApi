@@ -1,0 +1,6 @@
+using Hermes.Requests;
+using HoroscopeApi.Application.Features.Shared;
+
+namespace HoroscopeApi.Application.Features.ZodiacSigns.GetZodiacSignByName;
+
+public sealed record GetZodiacSignByNameQuery(string SignName) : IQuery<ZodiacSignInfoResponse>;

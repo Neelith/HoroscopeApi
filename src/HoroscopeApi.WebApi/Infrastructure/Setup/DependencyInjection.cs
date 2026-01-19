@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using HoroscopeApi.Application;
 using HoroscopeApi.Infrastructure;
 using HoroscopeApi.Infrastructure.Caching;
@@ -40,6 +40,7 @@ internal static class DependencyInjection
             .AddHttpContextAccessor()
             .AddExceptionHandler<GlobalExceptionHandler>()
             .ConfigureProblemDetails()
+            .AddCorsServices()
             .AddAuthenticationServices(jwtSettings)
             .AddAuthorizationServices()
             .AddApplicationServices()
@@ -61,6 +62,9 @@ internal static class DependencyInjection
 
         //Enable global exception handling
         app.UseExceptionHandler();
+
+        //Enable CORS
+        app.UseCors();
 
         //Add authentication and authorization middlewares
         app.UseAuthentication();
