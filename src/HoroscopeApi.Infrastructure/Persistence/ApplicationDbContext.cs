@@ -1,8 +1,7 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using HoroscopeApi.Application.Infrastructure.Persistance;
 using HoroscopeApi.Application.Infrastructure.User;
-using HoroscopeApi.Domain.WeatherForecasts;
 using HoroscopeApi.Shared.Domain;
 using HoroscopeApi.Shared.Time;
 
@@ -90,7 +89,5 @@ namespace HoroscopeApi.Infrastructure.Persistence
 
             await Database.CurrentTransaction.RollbackAsync(cancellationToken);
         }
-
-        public DbSet<WeatherForecast> Forecasts { get; set; }
     }
 }
