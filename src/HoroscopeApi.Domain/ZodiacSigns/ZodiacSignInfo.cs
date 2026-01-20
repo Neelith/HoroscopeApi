@@ -1,5 +1,6 @@
 using HoroscopeApi.Shared.Domain;
 using Hermes.Results;
+using HoroscopeApi.Domain.Horoscopes;
 
 namespace HoroscopeApi.Domain.ZodiacSigns;
 
@@ -18,6 +19,7 @@ public sealed class ZodiacSignInfo : Entity
     public Polarity Polarity { get; private set; }
     public string RulingPlanet { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
+    public ICollection<Horoscope> Horoscopes { get; private set; } = new List<Horoscope>();
 
     //EF constructor - required for entity materialization
     private ZodiacSignInfo() { }

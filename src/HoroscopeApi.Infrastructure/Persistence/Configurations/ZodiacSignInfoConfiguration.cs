@@ -57,5 +57,9 @@ internal sealed class ZodiacSignInfoConfiguration : IEntityTypeConfiguration<Zod
             .HasMaxLength(500);
 
         builder.HasIndex(z => z.Sign).IsUnique();
+
+        builder.HasMany(z => z.Horoscopes)
+            .WithOne(h => h.ZodiacSignInfo)
+            .HasForeignKey(h => h.ZodiacSignId);
     }
 }

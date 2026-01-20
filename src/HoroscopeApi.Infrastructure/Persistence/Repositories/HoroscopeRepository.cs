@@ -12,9 +12,10 @@ internal sealed class HoroscopeRepository(ApplicationDbContext context) : IHoros
         CancellationToken cancellationToken)
     {
         return await context.Horoscopes
+            .Include(h => h.ZodiacSignInfo)
             .AsNoTracking()
             .FirstOrDefaultAsync(
-                h => h.Sign == query.Sign && h.Period == query.Period && h.Date == query.Date,
+                h => h.ZodiacSignId == query.ZodiacSignId && h.Period == query.Period && h.Date == query.Date,
                 cancellationToken);
     }
 
@@ -23,8 +24,9 @@ internal sealed class HoroscopeRepository(ApplicationDbContext context) : IHoros
         CancellationToken cancellationToken)
     {
         return await context.Horoscopes
+            .Include(h => h.ZodiacSignInfo)
             .AsNoTracking()
-            .Where(h => h.Sign == query.Sign
+            .Where(h => h.ZodiacSignId == query.ZodiacSignId
                 && h.Period == query.Period
                 && h.Date >= query.StartDate
                 && h.Date <= query.EndDate)

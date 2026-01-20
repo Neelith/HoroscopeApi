@@ -22,9 +22,17 @@ internal sealed class GetDailyHoroscopeQueryHandler(
             return Result.Ko<HoroscopeResponse>(ZodiacSignErrors.InvalidName);
         }
 
+        var zodiacSignQuery = new GetZodiacSignBySignRepositoryQuery(zodiacSign);
+        var signInfo = await zodiacSignRepository.GetBySignAsync(zodiacSignQuery, cancellationToken);
+
+        if (signInfo is null)
+        {
+            return Result.Ko<HoroscopeResponse>(ZodiacSignErrors.NotFound(zodiacSign));
+        }
+
         var date = query.Date ?? DateOnly.FromDateTime(DateTime.UtcNow);
         var repositoryQuery = new GetHoroscopeBySignAndPeriodRepositoryQuery(
-            zodiacSign,
+            signInfo.Id,
             HoroscopePeriod.Daily,
             date);
         
@@ -37,15 +45,7 @@ internal sealed class GetDailyHoroscopeQueryHandler(
             return Result.Ko<HoroscopeResponse>(HoroscopeErrors.NotFound);
         }
 
-        var zodiacSignQuery = new GetZodiacSignBySignRepositoryQuery(zodiacSign);
-        var signInfo = await zodiacSignRepository.GetBySignAsync(zodiacSignQuery, cancellationToken);
-
-        if (signInfo is null)
-        {
-            return Result.Ko<HoroscopeResponse>(ZodiacSignErrors.NotFound(zodiacSign));
-        }
-
-        var response = MapToResponse(horoscope, signInfo);
+        var response = MapToResponse(horoscope, horoscope.ZodiacSignInfo);
         return Result.Ok(response);
     }
 
@@ -53,7 +53,7 @@ internal sealed class GetDailyHoroscopeQueryHandler(
     {
         return new HoroscopeResponse
         {
-            Sign = horoscope.Sign.ToString().ToLowerInvariant(),
+            Sign = horoscope.ZodiacSignInfo.Sign.ToString().ToLowerInvariant(),
             SignInfo = new ZodiacSignInfoResponse
             {
                 Name = signInfo.Name,

@@ -1,9 +1,7 @@
-using HoroscopeApi.Domain.ZodiacSigns;
-
 namespace HoroscopeApi.Domain.Horoscopes.Repositories;
 
 public sealed record GetHoroscopesByDateRangeRepositoryQuery(
-    ZodiacSign Sign,
+    int ZodiacSignId,
     HoroscopePeriod Period,
     DateOnly StartDate,
     DateOnly EndDate);

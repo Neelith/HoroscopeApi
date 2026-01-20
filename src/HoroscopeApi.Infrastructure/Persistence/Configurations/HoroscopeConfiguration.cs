@@ -15,9 +15,13 @@ internal sealed class HoroscopeConfiguration : IEntityTypeConfiguration<Horoscop
 
         builder.HasKey(h => h.Id);
 
-        builder.Property(h => h.Sign)
-            .IsRequired()
-            .HasConversion<int>();
+        builder.Property(h => h.ZodiacSignId)
+            .IsRequired();
+
+        builder.HasOne(h => h.ZodiacSignInfo)
+            .WithMany(z => z.Horoscopes)
+            .HasForeignKey(h => h.ZodiacSignId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(h => h.Period)
             .IsRequired()
@@ -58,8 +62,8 @@ internal sealed class HoroscopeConfiguration : IEntityTypeConfiguration<Horoscop
             .HasDefaultValue(false);
 
         // Indexes for performance
-        builder.HasIndex(h => new { h.Sign, h.Period, h.Date });
-        builder.HasIndex(h => new { h.Sign, h.Date });
+        builder.HasIndex(h => new { h.ZodiacSignId, h.Period, h.Date });
+        builder.HasIndex(h => new { h.ZodiacSignId, h.Date });
 
         // Query filter for soft delete
         builder.HasQueryFilter(h => !h.Deleted);

@@ -7,7 +7,8 @@ namespace HoroscopeApi.Domain.Horoscopes;
 public sealed class Horoscope : AuditableEntity
 {
     public int Id { get; private set; }
-    public ZodiacSign Sign { get; private set; }
+    public int ZodiacSignId { get; private set; }
+    public ZodiacSignInfo ZodiacSignInfo { get; private set; } = null!;
     public HoroscopePeriod Period { get; private set; }
     public DateOnly Date { get; private set; }
     public string GeneralPrediction { get; private set; } = string.Empty;
@@ -23,7 +24,7 @@ public sealed class Horoscope : AuditableEntity
     private Horoscope() { }
 
     private Horoscope(
-        ZodiacSign sign,
+        int zodiacSignId,
         HoroscopePeriod period,
         DateOnly date,
         string generalPrediction,
@@ -35,7 +36,7 @@ public sealed class Horoscope : AuditableEntity
         int moodScore,
         string keywords)
     {
-        Sign = sign;
+        ZodiacSignId = zodiacSignId;
         Period = period;
         Date = date;
         GeneralPrediction = generalPrediction;
@@ -49,7 +50,7 @@ public sealed class Horoscope : AuditableEntity
     }
 
     public static Result<Horoscope> Create(
-        ZodiacSign sign,
+        int zodiacSignId,
         HoroscopePeriod period,
         DateOnly date,
         string generalPrediction,
@@ -92,7 +93,7 @@ public sealed class Horoscope : AuditableEntity
         }
 
         var horoscope = new Horoscope(
-            sign,
+            zodiacSignId,
             period,
             date,
             generalPrediction,
