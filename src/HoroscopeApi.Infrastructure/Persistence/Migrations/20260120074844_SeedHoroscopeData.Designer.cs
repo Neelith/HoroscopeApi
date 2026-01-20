@@ -9,11 +9,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace HoroscopeApi.Infrastructure.Migrations
+namespace HoroscopeApi.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260119180523_SeedSampleHoroscopes")]
-    partial class SeedSampleHoroscopes
+    [Migration("20260120074844_SeedHoroscopeData")]
+    partial class SeedHoroscopeData
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,9 +45,8 @@ namespace HoroscopeApi.Infrastructure.Migrations
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasDefaultValue("system");
+                        .HasColumnType("text")
+                        .HasDefaultValue("");
 
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
@@ -91,20 +90,20 @@ namespace HoroscopeApi.Infrastructure.Migrations
                     b.Property<int>("Period")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Sign")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
+                    b.Property<int>("ZodiacSignId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Sign", "Date");
+                    b.HasIndex("ZodiacSignId", "Date");
 
-                    b.HasIndex("Sign", "Period", "Date");
+                    b.HasIndex("ZodiacSignId", "Period", "Date");
 
                     b.ToTable("Horoscopes", (string)null);
                 });
@@ -167,6 +166,22 @@ namespace HoroscopeApi.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ZodiacSigns", (string)null);
+                });
+
+            modelBuilder.Entity("HoroscopeApi.Domain.Horoscopes.Horoscope", b =>
+                {
+                    b.HasOne("HoroscopeApi.Domain.ZodiacSigns.ZodiacSignInfo", "ZodiacSignInfo")
+                        .WithMany("Horoscopes")
+                        .HasForeignKey("ZodiacSignId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ZodiacSignInfo");
+                });
+
+            modelBuilder.Entity("HoroscopeApi.Domain.ZodiacSigns.ZodiacSignInfo", b =>
+                {
+                    b.Navigation("Horoscopes");
                 });
 #pragma warning restore 612, 618
         }

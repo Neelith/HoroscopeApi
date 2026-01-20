@@ -1,12 +1,11 @@
-using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace HoroscopeApi.Infrastructure.Migrations
+namespace HoroscopeApi.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class SeedSampleHoroscopes : Migration
+    public partial class SeedHoroscopeData : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
