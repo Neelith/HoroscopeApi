@@ -35,6 +35,6 @@ public sealed class HoroscopesEndpoints : IEndpoints
 
         return result.IsSuccess
             ? TypedResults.Ok(result.Value!)
-            : result.ToProblemHttpResult();
+            : result.ToErrorResponse();
     }
 }

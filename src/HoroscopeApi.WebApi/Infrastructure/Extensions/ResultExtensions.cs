@@ -6,11 +6,6 @@ namespace HoroscopeApi.WebApi.Infrastructure.Extensions;
 
 internal static class ResultExtensions
 {
-    public static ProblemHttpResult ToProblemHttpResult<T>(this Result<T> result)
-    {
-        return ToErrorResponse(result);
-    }
-
     public static ProblemHttpResult ToErrorResponse<T>(this Result<T> result)
     {
         return ToErrorResponse(result as Result);

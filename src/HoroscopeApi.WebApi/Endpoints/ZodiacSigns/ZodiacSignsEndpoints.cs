@@ -39,7 +39,7 @@ public sealed class ZodiacSignsEndpoints : IEndpoints
 
         return result.IsSuccess
             ? TypedResults.Ok(result.Value!)
-            : result.ToProblemHttpResult();
+            : result.ToErrorResponse();
     }
 
     private static async Task<Results<Ok<ZodiacSignInfoResponse>, ProblemHttpResult>> GetZodiacSignByName(
@@ -52,6 +52,6 @@ public sealed class ZodiacSignsEndpoints : IEndpoints
 
         return result.IsSuccess
             ? TypedResults.Ok(result.Value!)
-            : result.ToProblemHttpResult();
+            : result.ToErrorResponse();
     }
 }
