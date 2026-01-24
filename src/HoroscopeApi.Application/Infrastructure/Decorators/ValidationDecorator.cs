@@ -1,4 +1,4 @@
-﻿using FluentValidation.Results;
+using FluentValidation.Results;
 using HoroscopeApi.Shared.Constants;
 using ValidationResult = FluentValidation.Results.ValidationResult;
 
@@ -18,12 +18,15 @@ internal static class ValidationDecorator
             if (failures.Length != 0)
             {
                 var errors = failures.Select(f =>
-                    new Error(f.ErrorCode ?? "VALIDATION_ERROR", f.ErrorMessage)).ToArray();
+                    new Error(f.ErrorCode ?? "VALIDATION_ERROR", f.ErrorMessage)
+                    {
+                        Metadata = new Dictionary<string, string?>
+                        {
+                            { ErrorConsts.ErrorType, ErrorConsts.BadRequestCode }
+                        }
+                    }).ToArray();
 
-                return Result.Ko(errors, new Dictionary<string, string?>
-                {
-                    { ErrorConsts.ErrorType, ErrorConsts.BadRequestCode }
-                });
+                return Result.Ko(errors);
             }
 
             return await inner.Handle(command, cancellationToken);
@@ -44,12 +47,15 @@ internal static class ValidationDecorator
             if (failures.Length != 0)
             {
                 var errors = failures.Select(f =>
-                    new Error(f.ErrorCode ?? "VALIDATION_ERROR", f.ErrorMessage)).ToArray();
+                    new Error(f.ErrorCode ?? "VALIDATION_ERROR", f.ErrorMessage)
+                    {
+                        Metadata = new Dictionary<string, string?>
+                        {
+                            { ErrorConsts.ErrorType, ErrorConsts.BadRequestCode }
+                        }
+                    }).ToArray();
 
-                return Result.Ko<TResponse>(errors, new Dictionary<string, string?>
-                {
-                    { ErrorConsts.ErrorType, ErrorConsts.BadRequestCode }
-                });
+                return Result.Ko<TResponse>(errors);
             }
 
             return await inner.Handle(command, cancellationToken);
@@ -70,12 +76,15 @@ internal static class ValidationDecorator
             if (failures.Length != 0)
             {
                 var errors = failures.Select(f =>
-                    new Error(f.ErrorCode ?? "VALIDATION_ERROR", f.ErrorMessage)).ToArray();
+                    new Error(f.ErrorCode ?? "VALIDATION_ERROR", f.ErrorMessage)
+                    {
+                        Metadata = new Dictionary<string, string?>
+                        {
+                            { ErrorConsts.ErrorType, ErrorConsts.BadRequestCode }
+                        }
+                    }).ToArray();
 
-                return Result.Ko<TResponse>(errors, new Dictionary<string, string?>
-                {
-                    { ErrorConsts.ErrorType, ErrorConsts.BadRequestCode }
-                });
+                return Result.Ko<TResponse>(errors);
             }
 
             return await inner.Handle(query, cancellationToken);

@@ -1,20 +1,20 @@
 using Hermes.Handlers;
+using Hermes.Responses;
 using HoroscopeApi.Application.Features.Shared;
 using HoroscopeApi.Domain.ZodiacSigns.Repositories;
-using System.Text.Json;
 
 namespace HoroscopeApi.Application.Features.ZodiacSigns.GetAllZodiacSigns;
 
 internal sealed class GetAllZodiacSignsQueryHandler(IZodiacSignRepository repository)
-    : IQueryHandler<GetAllZodiacSignsQuery, ZodiacSignListResponse>
+    : IQueryHandler<GetAllZodiacSignsQuery, PagedResponse<ZodiacSignInfoData>>
 {
-    public async Task<Result<ZodiacSignListResponse>> Handle(
+    public async Task<Result<PagedResponse<ZodiacSignInfoData>>> Handle(
         GetAllZodiacSignsQuery query,
         CancellationToken cancellationToken)
     {
         var zodiacSigns = await repository.GetAllAsync(cancellationToken);
 
-        var signsList = zodiacSigns.Select(z => new ZodiacSignInfoResponse
+        var dataList = zodiacSigns.Select(z => new ZodiacSignInfoData
         {
             Name = z.Name,
             Symbol = z.Symbol,
@@ -26,7 +26,7 @@ internal sealed class GetAllZodiacSignsQueryHandler(IZodiacSignRepository reposi
             Description = z.Description
         }).ToList();
 
-        var response = new ZodiacSignListResponse(signsList);
+        var response = PagedResponse<ZodiacSignInfoData>.Create(dataList, dataList.Count);
         return Result.Ok(response);
     }
 

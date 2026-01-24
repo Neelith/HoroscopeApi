@@ -1,4 +1,5 @@
 using Hermes.Handlers;
+using Hermes.Responses;
 using HoroscopeApi.Application.Features.Shared;
 using HoroscopeApi.Domain.ZodiacSigns;
 using HoroscopeApi.Domain.ZodiacSigns.Repositories;
@@ -6,15 +7,15 @@ using HoroscopeApi.Domain.ZodiacSigns.Repositories;
 namespace HoroscopeApi.Application.Features.ZodiacSigns.GetZodiacSignByName;
 
 internal sealed class GetZodiacSignByNameQueryHandler(IZodiacSignRepository repository)
-    : IQueryHandler<GetZodiacSignByNameQuery, ZodiacSignInfoResponse>
+    : IQueryHandler<GetZodiacSignByNameQuery, Response<ZodiacSignInfoData>>
 {
-    public async Task<Result<ZodiacSignInfoResponse>> Handle(
+    public async Task<Result<Response<ZodiacSignInfoData>>> Handle(
         GetZodiacSignByNameQuery query,
         CancellationToken cancellationToken)
     {
         if (!Enum.TryParse<ZodiacSign>(query.SignName, true, out var zodiacSign))
         {
-            return Result.Ko<ZodiacSignInfoResponse>(ZodiacSignErrors.InvalidName);
+            return Result.Ko<Response<ZodiacSignInfoData>>(ZodiacSignErrors.InvalidName);
         }
 
         var repositoryQuery = new GetZodiacSignBySignRepositoryQuery(zodiacSign);
@@ -22,10 +23,10 @@ internal sealed class GetZodiacSignByNameQueryHandler(IZodiacSignRepository repo
 
         if (signInfo is null)
         {
-            return Result.Ko<ZodiacSignInfoResponse>(ZodiacSignErrors.NotFound(zodiacSign));
+            return Result.Ko<Response<ZodiacSignInfoData>>(ZodiacSignErrors.NotFound(zodiacSign));
         }
 
-        var response = new ZodiacSignInfoResponse
+        var data = new ZodiacSignInfoData
         {
             Name = signInfo.Name,
             Symbol = signInfo.Symbol,
@@ -37,6 +38,7 @@ internal sealed class GetZodiacSignByNameQueryHandler(IZodiacSignRepository repo
             Description = signInfo.Description
         };
 
+        var response = Response<ZodiacSignInfoData>.Create(data);
         return Result.Ok(response);
     }
 

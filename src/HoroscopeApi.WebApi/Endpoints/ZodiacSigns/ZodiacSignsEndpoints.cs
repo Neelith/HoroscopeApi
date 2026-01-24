@@ -1,5 +1,6 @@
 using Carter;
 using Hermes.Handlers;
+using Hermes.Responses;
 using HoroscopeApi.Application.Features.Shared;
 using HoroscopeApi.Application.Features.ZodiacSigns.GetAllZodiacSigns;
 using HoroscopeApi.Application.Features.ZodiacSigns.GetZodiacSignByName;
@@ -20,18 +21,18 @@ public sealed class ZodiacSignsEndpoints : IEndpoints
         group.MapGet("", GetAllZodiacSigns)
             .WithName("GetAllZodiacSigns")
             .WithDescription("Get all zodiac signs with their information")
-            .Produces<ZodiacSignListResponse>(StatusCodes.Status200OK);
+            .Produces<PagedResponse<ZodiacSignInfoData>>(StatusCodes.Status200OK);
 
         group.MapGet("{signName}", GetZodiacSignByName)
             .WithName("GetZodiacSignByName")
             .WithDescription("Get zodiac sign information by name")
-            .Produces<ZodiacSignInfoResponse>(StatusCodes.Status200OK)
+            .Produces<Response<ZodiacSignInfoData>>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<Results<Ok<ZodiacSignListResponse>, ProblemHttpResult>> GetAllZodiacSigns(
-        IQueryHandler<GetAllZodiacSignsQuery, ZodiacSignListResponse> handler,
+    private static async Task<Results<Ok<PagedResponse<ZodiacSignInfoData>>, ProblemHttpResult>> GetAllZodiacSigns(
+        IQueryHandler<GetAllZodiacSignsQuery, PagedResponse<ZodiacSignInfoData>> handler,
         CancellationToken cancellationToken)
     {
         var query = new GetAllZodiacSignsQuery();
@@ -42,9 +43,9 @@ public sealed class ZodiacSignsEndpoints : IEndpoints
             : result.ToErrorResponse();
     }
 
-    private static async Task<Results<Ok<ZodiacSignInfoResponse>, ProblemHttpResult>> GetZodiacSignByName(
+    private static async Task<Results<Ok<Response<ZodiacSignInfoData>>, ProblemHttpResult>> GetZodiacSignByName(
         string signName,
-        IQueryHandler<GetZodiacSignByNameQuery, ZodiacSignInfoResponse> handler,
+        IQueryHandler<GetZodiacSignByNameQuery, Response<ZodiacSignInfoData>> handler,
         CancellationToken cancellationToken)
     {
         var query = new GetZodiacSignByNameQuery(signName);

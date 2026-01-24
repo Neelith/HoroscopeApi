@@ -1,8 +1,6 @@
-using Hermes.Responses;
-
 namespace HoroscopeApi.Application.Features.Shared;
 
-public sealed record ZodiacSignInfoResponse : IResponse
+public sealed record ZodiacSignInfoData
 {
     public required string Name { get; init; }
     public required string Symbol { get; init; }

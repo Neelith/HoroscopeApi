@@ -1,5 +1,6 @@
 using Carter;
 using Hermes.Handlers;
+using Hermes.Responses;
 using HoroscopeApi.Application.Features.Horoscopes.GetDailyHoroscope;
 using HoroscopeApi.Application.Features.Shared;
 using HoroscopeApi.WebApi.Constants;
@@ -19,15 +20,15 @@ public sealed class HoroscopesEndpoints : IEndpoints
         group.MapGet("{signName}/daily", GetDailyHoroscope)
             .WithName("GetDailyHoroscope")
             .WithDescription("Get daily horoscope for a zodiac sign")
-            .Produces<HoroscopeResponse>(StatusCodes.Status200OK)
+            .Produces<Response<HoroscopeData>>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<Results<Ok<HoroscopeResponse>, ProblemHttpResult>> GetDailyHoroscope(
+    private static async Task<Results<Ok<Response<HoroscopeData>>, ProblemHttpResult>> GetDailyHoroscope(
         string signName,
         DateOnly? date,
-        IQueryHandler<GetDailyHoroscopeQuery, HoroscopeResponse> handler,
+        IQueryHandler<GetDailyHoroscopeQuery, Response<HoroscopeData>> handler,
         CancellationToken cancellationToken)
     {
         var query = new GetDailyHoroscopeQuery(signName, date);

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Hermes.Handlers;
+using Hermes.Responses;
 using HoroscopeApi.Application.Features.Shared;
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.Horoscopes.Repositories;
@@ -11,15 +12,15 @@ namespace HoroscopeApi.Application.Features.Horoscopes.GetDailyHoroscope;
 internal sealed class GetDailyHoroscopeQueryHandler(
     IHoroscopeRepository horoscopeRepository,
     IZodiacSignRepository zodiacSignRepository)
-    : IQueryHandler<GetDailyHoroscopeQuery, HoroscopeResponse>
+    : IQueryHandler<GetDailyHoroscopeQuery, Response<HoroscopeData>>
 {
-    public async Task<Result<HoroscopeResponse>> Handle(
+    public async Task<Result<Response<HoroscopeData>>> Handle(
         GetDailyHoroscopeQuery query,
         CancellationToken cancellationToken)
     {
         if (!Enum.TryParse<ZodiacSign>(query.SignName, true, out var zodiacSign))
         {
-            return Result.Ko<HoroscopeResponse>(ZodiacSignErrors.InvalidName);
+            return Result.Ko<Response<HoroscopeData>>(ZodiacSignErrors.InvalidName);
         }
 
         var zodiacSignQuery = new GetZodiacSignBySignRepositoryQuery(zodiacSign);
@@ -27,7 +28,7 @@ internal sealed class GetDailyHoroscopeQueryHandler(
 
         if (signInfo is null)
         {
-            return Result.Ko<HoroscopeResponse>(ZodiacSignErrors.NotFound(zodiacSign));
+            return Result.Ko<Response<HoroscopeData>>(ZodiacSignErrors.NotFound(zodiacSign));
         }
 
         var date = query.Date ?? DateOnly.FromDateTime(DateTime.UtcNow);
@@ -42,19 +43,20 @@ internal sealed class GetDailyHoroscopeQueryHandler(
 
         if (horoscope is null)
         {
-            return Result.Ko<HoroscopeResponse>(HoroscopeErrors.NotFound);
+            return Result.Ko<Response<HoroscopeData>>(HoroscopeErrors.NotFound);
         }
 
-        var response = MapToResponse(horoscope, horoscope.ZodiacSignInfo);
+        var data = MapToData(horoscope, horoscope.ZodiacSignInfo);
+        var response = Response<HoroscopeData>.Create(data);
         return Result.Ok(response);
     }
 
-    private static HoroscopeResponse MapToResponse(Horoscope horoscope, ZodiacSignInfo signInfo)
+    private static HoroscopeData MapToData(Horoscope horoscope, ZodiacSignInfo signInfo)
     {
-        return new HoroscopeResponse
+        return new HoroscopeData
         {
             Sign = horoscope.ZodiacSignInfo.Sign.ToString().ToLowerInvariant(),
-            SignInfo = new ZodiacSignInfoResponse
+            SignInfo = new ZodiacSignInfoData
             {
                 Name = signInfo.Name,
                 Symbol = signInfo.Symbol,
@@ -67,7 +69,7 @@ internal sealed class GetDailyHoroscopeQueryHandler(
             },
             Period = horoscope.Period.ToString().ToLowerInvariant(),
             Date = horoscope.Date,
-            Predictions = new HoroscopePredictionsResponse
+            Predictions = new HoroscopePredictions
             {
                 General = horoscope.GeneralPrediction,
                 Love = horoscope.LovePrediction,

@@ -1,6 +1,6 @@
 namespace HoroscopeApi.Application.Features.Shared;
 
-public sealed record HoroscopePredictionsResponse
+public sealed record HoroscopePredictions
 {
     public required string General { get; init; }
     public string? Love { get; init; }

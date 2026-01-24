@@ -18,11 +18,20 @@ internal static class ResultExtensions
             throw new ArgumentException("Expected 'failed' result, but 'success' result was found instead");
         }
 
-        string? errorType = default;
+        // Check metadata from the first error (all errors should have the same HTTP status)
+        string? errorType = null;
+        if (result.Errors.Count > 0 && result.Errors[0].Metadata != null)
+        {
+            result.Errors[0].Metadata.TryGetValue(ErrorConsts.ErrorType, out errorType);
+        }
 
-        var errorTypeParsed = result.Metadata?.TryGetValue(ErrorConsts.ErrorType, out errorType);
+        // Fallback to result-level metadata if error doesn't have it
+        if (errorType is null && result.Metadata != null)
+        {
+            result.Metadata.TryGetValue(ErrorConsts.ErrorType, out errorType);
+        }
 
-        if (errorTypeParsed is not true || errorType is null)
+        if (errorType is null)
         {
             return result.ToProblem(HttpStatusCode.InternalServerError);
         }
