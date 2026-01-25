@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using Hermes.Handlers;
 using Hermes.Responses;
 using HoroscopeApi.Application.Features.Shared;
+using HoroscopeApi.Application.Infrastructure.AI;
+using HoroscopeApi.Application.Infrastructure.Persistance;
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.Horoscopes.Repositories;
 using HoroscopeApi.Domain.ZodiacSigns;
@@ -11,7 +13,9 @@ namespace HoroscopeApi.Application.Features.Horoscopes.GetDailyHoroscope;
 
 internal sealed class GetDailyHoroscopeQueryHandler(
     IHoroscopeRepository horoscopeRepository,
-    IZodiacSignRepository zodiacSignRepository)
+    IZodiacSignRepository zodiacSignRepository,
+    IHoroscopeGeneratorService horoscopeGeneratorService,
+    IUnitOfWork unitOfWork)
     : IQueryHandler<GetDailyHoroscopeQuery, Response<HoroscopeData>>
 {
     public async Task<Result<Response<HoroscopeData>>> Handle(
@@ -43,10 +47,34 @@ internal sealed class GetDailyHoroscopeQueryHandler(
 
         if (horoscope is null)
         {
-            return Result.Ko<Response<HoroscopeData>>(HoroscopeErrors.NotFound);
+            // Try to generate horoscopes for all 12 zodiac signs using AI
+            var generationResult = await horoscopeGeneratorService.GenerateDailyHoroscopesAsync(
+                date,
+                cancellationToken);
+
+            if (!generationResult.IsSuccess)
+            {
+                return Result.Ko<Response<HoroscopeData>>(generationResult.Errors);
+            }
+
+            var allHoroscopes = generationResult.Value!;
+            
+            // Save all 12 generated horoscopes to the database
+            await horoscopeRepository.AddRangeAsync(allHoroscopes, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            
+            // Reload the requested horoscope from database to populate ZodiacSignInfo navigation property
+            horoscope = await horoscopeRepository.GetBySignAndPeriodAsync(
+                repositoryQuery,
+                cancellationToken);
+            
+            if (horoscope is null)
+            {
+                return Result.Ko<Response<HoroscopeData>>(HoroscopeErrors.NotFound);
+            }
         }
 
-        var data = MapToData(horoscope, horoscope.ZodiacSignInfo);
+        var data = MapToData(horoscope!, horoscope.ZodiacSignInfo);
         var response = Response<HoroscopeData>.Create(data);
         return Result.Ok(response);
     }
@@ -76,10 +104,10 @@ internal sealed class GetDailyHoroscopeQueryHandler(
                 Career = horoscope.CareerPrediction,
                 Health = horoscope.HealthPrediction
             },
-            LuckyNumbers = JsonSerializer.Deserialize<List<int>>(horoscope.LuckyNumbers) ?? [],
-            LuckyColors = JsonSerializer.Deserialize<List<string>>(horoscope.LuckyColors) ?? [],
+            LuckyNumbers = horoscope.LuckyNumbers,
+            LuckyColors = horoscope.LuckyColors,
             MoodScore = horoscope.MoodScore,
-            Keywords = JsonSerializer.Deserialize<List<string>>(horoscope.Keywords) ?? []
+            Keywords = horoscope.Keywords
         };
     }
 

@@ -15,10 +15,10 @@ public sealed class Horoscope : AuditableEntity
     public string? LovePrediction { get; private set; }
     public string? CareerPrediction { get; private set; }
     public string? HealthPrediction { get; private set; }
-    public string LuckyNumbers { get; private set; } = string.Empty;
-    public string LuckyColors { get; private set; } = string.Empty;
+    public List<int> LuckyNumbers { get; private set; } = new();
+    public List<string> LuckyColors { get; private set; } = new();
     public int MoodScore { get; private set; }
-    public string Keywords { get; private set; } = string.Empty;
+    public List<string> Keywords { get; private set; } = new();
 
     //EF constructor - required for entity materialization
     private Horoscope() { }
@@ -31,10 +31,10 @@ public sealed class Horoscope : AuditableEntity
         string? lovePrediction,
         string? careerPrediction,
         string? healthPrediction,
-        string luckyNumbers,
-        string luckyColors,
+        List<int> luckyNumbers,
+        List<string> luckyColors,
         int moodScore,
-        string keywords)
+        List<string> keywords)
     {
         ZodiacSignId = zodiacSignId;
         Period = period;
@@ -57,10 +57,10 @@ public sealed class Horoscope : AuditableEntity
         string? lovePrediction,
         string? careerPrediction,
         string? healthPrediction,
-        string luckyNumbers,
-        string luckyColors,
+        List<int> luckyNumbers,
+        List<string> luckyColors,
         int moodScore,
-        string keywords)
+        List<string> keywords)
     {
         if (string.IsNullOrWhiteSpace(generalPrediction))
         {
@@ -77,17 +77,17 @@ public sealed class Horoscope : AuditableEntity
             return Result.Ko<Horoscope>(HoroscopeErrors.InvalidMoodScore);
         }
 
-        if (string.IsNullOrWhiteSpace(luckyNumbers))
+        if (luckyNumbers == null || luckyNumbers.Count == 0)
         {
             return Result.Ko<Horoscope>(HoroscopeErrors.InvalidLuckyNumbers);
         }
 
-        if (string.IsNullOrWhiteSpace(luckyColors))
+        if (luckyColors == null || luckyColors.Count == 0)
         {
             return Result.Ko<Horoscope>(HoroscopeErrors.InvalidLuckyColors);
         }
 
-        if (string.IsNullOrWhiteSpace(keywords))
+        if (keywords == null || keywords.Count == 0)
         {
             return Result.Ko<Horoscope>(HoroscopeErrors.InvalidKeywords);
         }

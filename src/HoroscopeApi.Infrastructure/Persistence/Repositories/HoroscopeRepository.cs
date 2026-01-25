@@ -38,4 +38,9 @@ internal sealed class HoroscopeRepository(ApplicationDbContext context) : IHoros
     {
         await context.Horoscopes.AddAsync(horoscope, cancellationToken);
     }
+
+    public async Task AddRangeAsync(IEnumerable<Horoscope> horoscopes, CancellationToken cancellationToken)
+    {
+        await context.Horoscopes.AddRangeAsync(horoscopes, cancellationToken);
+    }
 }

@@ -13,4 +13,6 @@ public interface IHoroscopeRepository
         CancellationToken cancellationToken);
 
     Task AddAsync(Horoscope horoscope, CancellationToken cancellationToken);
+    
+    Task AddRangeAsync(IEnumerable<Horoscope> horoscopes, CancellationToken cancellationToken);
 }

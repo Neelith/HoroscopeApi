@@ -1,6 +1,7 @@
 using System.Reflection;
 using HoroscopeApi.Application;
 using HoroscopeApi.Infrastructure;
+using HoroscopeApi.Infrastructure.AI;
 using HoroscopeApi.Infrastructure.Caching;
 using HoroscopeApi.Infrastructure.Persistence;
 using HoroscopeApi.WebApi.Infrastructure.Settings;
@@ -45,6 +46,7 @@ internal static class DependencyInjection
             .AddAuthorizationServices()
             .AddApplicationServices()
             .AddInfrastructureServices(startupLogger, dbConnectionString, redisSettings)
+            .AddHuggingFace(configuration)
             .AddEndpoints(Assembly.GetExecutingAssembly())
             .AddOpenApiServices(jwtSettings);
 

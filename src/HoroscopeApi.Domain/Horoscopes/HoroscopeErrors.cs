@@ -57,7 +57,7 @@ public static class HoroscopeErrors
 
     public static Error InvalidLuckyNumbers => new(
         "Horoscope.InvalidLuckyNumbers",
-        "Lucky numbers are required.")
+        "At least one lucky number is required.")
     {
         Metadata = new Dictionary<string, string?>
         {
@@ -67,7 +67,7 @@ public static class HoroscopeErrors
 
     public static Error InvalidLuckyColors => new(
         "Horoscope.InvalidLuckyColors",
-        "Lucky colors are required.")
+        "At least one lucky color is required.")
     {
         Metadata = new Dictionary<string, string?>
         {
@@ -77,7 +77,7 @@ public static class HoroscopeErrors
 
     public static Error InvalidKeywords => new(
         "Horoscope.InvalidKeywords",
-        "Keywords are required.")
+        "At least one keyword is required.")
     {
         Metadata = new Dictionary<string, string?>
         {

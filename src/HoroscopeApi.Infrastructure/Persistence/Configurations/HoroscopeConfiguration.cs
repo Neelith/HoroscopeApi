@@ -45,18 +45,18 @@ internal sealed class HoroscopeConfiguration : IEntityTypeConfiguration<Horoscop
 
         builder.Property(h => h.LuckyNumbers)
             .IsRequired()
-            .HasMaxLength(100);
+            .HasColumnType("jsonb");
 
         builder.Property(h => h.LuckyColors)
             .IsRequired()
-            .HasMaxLength(200);
+            .HasColumnType("jsonb");
 
         builder.Property(h => h.MoodScore)
             .IsRequired();
 
         builder.Property(h => h.Keywords)
             .IsRequired()
-            .HasMaxLength(500);
+            .HasColumnType("jsonb");
 
         builder.Property(h => h.Deleted)
             .HasDefaultValue(false);
