@@ -47,8 +47,9 @@ internal sealed class GetDailyHoroscopeQueryHandler(
 
         if (horoscope is null)
         {
-            // Try to generate horoscopes for all 12 zodiac signs using AI
-            var generationResult = await horoscopeGeneratorService.GenerateDailyHoroscopesAsync(
+            // Generate horoscope for the requested zodiac sign using AI
+            var generationResult = await horoscopeGeneratorService.GenerateDailyHoroscopeAsync(
+                zodiacSign,
                 date,
                 cancellationToken);
 
@@ -57,13 +58,13 @@ internal sealed class GetDailyHoroscopeQueryHandler(
                 return Result.Ko<Response<HoroscopeData>>(generationResult.Errors);
             }
 
-            var allHoroscopes = generationResult.Value!;
+            horoscope = generationResult.Value!;
             
-            // Save all 12 generated horoscopes to the database
-            await horoscopeRepository.AddRangeAsync(allHoroscopes, cancellationToken);
+            // Save the generated horoscope to the database
+            await horoscopeRepository.AddAsync(horoscope, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
             
-            // Reload the requested horoscope from database to populate ZodiacSignInfo navigation property
+            // Reload to populate ZodiacSignInfo navigation property
             horoscope = await horoscopeRepository.GetBySignAndPeriodAsync(
                 repositoryQuery,
                 cancellationToken);

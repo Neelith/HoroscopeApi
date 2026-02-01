@@ -2,6 +2,6 @@ using HoroscopeApi.Domain.ZodiacSigns;
 
 namespace HoroscopeApi.Application.Infrastructure.AI;
 
-public sealed record GenerateBatchHoroscopesRequest(
+public sealed record GenerateHoroscopeRequest(
     DateOnly Date,
-    IReadOnlyCollection<ZodiacSignInfo> ZodiacSigns);
+    ZodiacSignInfo SignInfo);

@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using Hermes.Results;
 using HoroscopeApi.Application.Infrastructure.AI;
 using HoroscopeApi.Domain.AI;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace HoroscopeApi.Infrastructure.AI;
@@ -14,24 +15,27 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
     private readonly HttpClient _httpClient;
     private readonly HuggingFaceSettings _settings;
     private readonly IHoroscopePromptBuilder _promptBuilder;
+    private readonly ILogger<HuggingFaceClient> _logger;
 
     public HuggingFaceClient(
         HttpClient httpClient,
         IOptions<HuggingFaceSettings> settings,
-        IHoroscopePromptBuilder promptBuilder)
+        IHoroscopePromptBuilder promptBuilder,
+        ILogger<HuggingFaceClient> logger)
     {
         _httpClient = httpClient;
         _settings = settings.Value;
         _promptBuilder = promptBuilder;
+        _logger = logger;
     }
 
-    public async Task<Result<HuggingFaceBatchResponse>> GenerateBatchHoroscopesAsync(
-        GenerateBatchHoroscopesRequest request,
+    public async Task<Result<HuggingFaceHoroscopeData>> GenerateHoroscopeAsync(
+        GenerateHoroscopeRequest request,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var messages = _promptBuilder.BuildMessages(request.Date, request.ZodiacSigns);
+            var messages = _promptBuilder.BuildMessage(request.Date, request.SignInfo);
             
             var apiRequest = new
             {
@@ -64,7 +68,7 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
 
             if (apiResponse?.Choices == null || apiResponse.Choices.Count == 0)
             {
-                return Result.Ko<HuggingFaceBatchResponse>(AIErrors.InvalidResponse);
+                return Result.Ko<HuggingFaceHoroscopeData>(AIErrors.InvalidResponse);
             }
 
             var generatedText = apiResponse.Choices[0].Message.Content.Trim();
@@ -82,63 +86,76 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
                 generatedText = generatedText.Substring(4).TrimStart();
             }
 
-            var batchResponse = JsonSerializer.Deserialize<HuggingFaceBatchResponse>(
+            // Log the raw AI response for debugging
+            _logger.LogDebug("Raw AI response for {Sign} on {Date}: {Response}", 
+                request.SignInfo.Sign, 
+                request.Date,
+                generatedText);
+
+            var horoscopeData = JsonSerializer.Deserialize<HuggingFaceHoroscopeData>(
                 generatedText,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            if (batchResponse == null || !ValidateResponse(batchResponse))
+            if (horoscopeData == null)
             {
-                return Result.Ko<HuggingFaceBatchResponse>(AIErrors.InvalidResponse);
+                _logger.LogError("Failed to deserialize AI response for {Sign} on {Date}. Raw response: {Response}", 
+                    request.SignInfo.Sign,
+                    request.Date,
+                    generatedText);
+                return Result.Ko<HuggingFaceHoroscopeData>(AIErrors.InvalidResponse);
             }
 
-            return Result.Ok(batchResponse);
+            if (!ValidateResponse(horoscopeData))
+            {
+                _logger.LogError("AI response validation failed for {Sign} on {Date}. Deserialized data: {@HoroscopeData}", 
+                    request.SignInfo.Sign,
+                    request.Date,
+                    horoscopeData);
+                return Result.Ko<HuggingFaceHoroscopeData>(AIErrors.InvalidResponse);
+            }
+
+            return Result.Ok(horoscopeData);
         }
         catch (OperationCanceledException)
         {
-            return Result.Ko<HuggingFaceBatchResponse>(AIErrors.Timeout);
+            return Result.Ko<HuggingFaceHoroscopeData>(AIErrors.Timeout);
         }
         catch (JsonException)
         {
-            return Result.Ko<HuggingFaceBatchResponse>(AIErrors.InvalidResponse);
+            return Result.Ko<HuggingFaceHoroscopeData>(AIErrors.InvalidResponse);
         }
         catch
         {
-            return Result.Ko<HuggingFaceBatchResponse>(AIErrors.GenerationFailed);
+            return Result.Ko<HuggingFaceHoroscopeData>(AIErrors.GenerationFailed);
         }
     }
 
-    private static Result<HuggingFaceBatchResponse> MapHttpError(HttpStatusCode statusCode)
+    private static Result<HuggingFaceHoroscopeData> MapHttpError(HttpStatusCode statusCode)
     {
         return statusCode switch
         {
             HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => 
-                Result.Ko<HuggingFaceBatchResponse>(AIErrors.InvalidApiKey),
+                Result.Ko<HuggingFaceHoroscopeData>(AIErrors.InvalidApiKey),
             HttpStatusCode.TooManyRequests => 
-                Result.Ko<HuggingFaceBatchResponse>(AIErrors.RateLimitExceeded),
+                Result.Ko<HuggingFaceHoroscopeData>(AIErrors.RateLimitExceeded),
             HttpStatusCode.ServiceUnavailable => 
-                Result.Ko<HuggingFaceBatchResponse>(AIErrors.ModelLoading),
-            _ => Result.Ko<HuggingFaceBatchResponse>(AIErrors.GenerationFailed)
+                Result.Ko<HuggingFaceHoroscopeData>(AIErrors.ModelLoading),
+            _ => Result.Ko<HuggingFaceHoroscopeData>(AIErrors.GenerationFailed)
         };
     }
 
-    private static bool ValidateResponse(HuggingFaceBatchResponse response)
+    private static bool ValidateResponse(HuggingFaceHoroscopeData horoscope)
     {
-        if (response.Horoscopes == null || response.Horoscopes.Count != 12)
-            return false;
-
-        foreach (var horoscope in response.Horoscopes)
+        if (string.IsNullOrWhiteSpace(horoscope.Sign) ||
+            string.IsNullOrWhiteSpace(horoscope.General) ||
+            string.IsNullOrWhiteSpace(horoscope.Love) ||
+            string.IsNullOrWhiteSpace(horoscope.Career) ||
+            string.IsNullOrWhiteSpace(horoscope.Health) ||
+            horoscope.Keywords == null || horoscope.Keywords.Count == 0 ||
+            horoscope.LuckyColors == null || horoscope.LuckyColors.Count == 0 ||
+            horoscope.MoodScore < 1 || horoscope.MoodScore > 10)
         {
-            if (string.IsNullOrWhiteSpace(horoscope.Sign) ||
-                string.IsNullOrWhiteSpace(horoscope.General) ||
-                string.IsNullOrWhiteSpace(horoscope.Love) ||
-                string.IsNullOrWhiteSpace(horoscope.Career) ||
-                string.IsNullOrWhiteSpace(horoscope.Health) ||
-                horoscope.Keywords == null || horoscope.Keywords.Count == 0 ||
-                horoscope.LuckyColors == null || horoscope.LuckyColors.Count == 0 ||
-                horoscope.MoodScore < 1 || horoscope.MoodScore > 10)
-            {
-                return false;
-            }
+            return false;
         }
 
         return true;

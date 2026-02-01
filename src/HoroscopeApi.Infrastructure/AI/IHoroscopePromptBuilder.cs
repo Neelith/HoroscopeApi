@@ -5,5 +5,5 @@ namespace HoroscopeApi.Infrastructure.AI;
 
 public interface IHoroscopePromptBuilder
 {
-    List<ChatMessage> BuildMessages(DateOnly date, IReadOnlyCollection<ZodiacSignInfo> zodiacSigns);
+    List<ChatMessage> BuildMessage(DateOnly date, ZodiacSignInfo zodiacSignInfo);
 }

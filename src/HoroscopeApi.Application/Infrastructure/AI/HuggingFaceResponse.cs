@@ -1,10 +1,6 @@
 using System.Text.Json.Serialization;
-using HoroscopeApi.Domain.ZodiacSigns;
 
 namespace HoroscopeApi.Application.Infrastructure.AI;
-
-public sealed record HuggingFaceBatchResponse(
-    [property: JsonPropertyName("horoscopes")] List<HuggingFaceHoroscopeData> Horoscopes);
 
 public sealed record HuggingFaceHoroscopeData(
     [property: JsonPropertyName("sign")] string Sign,

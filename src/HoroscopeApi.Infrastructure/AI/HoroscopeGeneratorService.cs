@@ -20,76 +20,59 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
         _zodiacSignRepository = zodiacSignRepository;
     }
 
-    public async Task<Result<List<Horoscope>>> GenerateDailyHoroscopesAsync(
+    public async Task<Result<Horoscope>> GenerateDailyHoroscopeAsync(
+        ZodiacSign sign,
         DateOnly date,
         CancellationToken cancellationToken = default)
     {
-        // Fetch all zodiac sign descriptions from database
-        var allZodiacSigns = await _zodiacSignRepository.GetAllAsync(cancellationToken);
+        // Fetch zodiac sign info from database
+        var zodiacSignQuery = new GetZodiacSignBySignRepositoryQuery(sign);
+        var zodiacSignInfo = await _zodiacSignRepository.GetBySignAsync(zodiacSignQuery, cancellationToken);
         
-        if (allZodiacSigns.Count != 12)
+        if (zodiacSignInfo == null)
         {
-            return Result.Ko<List<Horoscope>>(AIErrors.GenerationFailed);
+            return Result.Ko<Horoscope>(ZodiacSignErrors.NotFound(sign));
         }
 
-        // Generate batch horoscopes for all 12 signs
-        var request = new GenerateBatchHoroscopesRequest(date, allZodiacSigns);
-        var batchResult = await _huggingFaceClient.GenerateBatchHoroscopesAsync(request, cancellationToken);
+        // Generate horoscope for the specific sign
+        var request = new GenerateHoroscopeRequest(date, zodiacSignInfo);
+        var aiResult = await _huggingFaceClient.GenerateHoroscopeAsync(request, cancellationToken);
         
-        if (!batchResult.IsSuccess)
+        if (!aiResult.IsSuccess)
         {
-            return Result.Ko<List<Horoscope>>(batchResult.Errors);
+            return Result.Ko<Horoscope>(aiResult.Errors);
         }
 
-        // Validate we got all 12 horoscopes (all-or-nothing approach)
-        if (batchResult.Value!.Horoscopes.Count != 12)
+        var horoscopeData = aiResult.Value!;
+
+        // Validate the sign matches
+        if (!horoscopeData.Sign.Equals(sign.ToString(), StringComparison.OrdinalIgnoreCase))
         {
-            return Result.Ko<List<Horoscope>>(AIErrors.InvalidResponse);
+            return Result.Ko<Horoscope>(AIErrors.InvalidResponse);
         }
 
-        var horoscopes = new List<Horoscope>();
+        // Generate lucky numbers deterministically
+        var luckyNumbers = LuckyNumberGenerator.Generate(sign, date).ToList();
 
-        // Convert each AI horoscope to domain entity
-        foreach (var horoscopeData in batchResult.Value.Horoscopes)
+        // Create the Horoscope entity
+        var horoscopeResult = Horoscope.Create(
+            zodiacSignId: zodiacSignInfo.Id,
+            period: HoroscopePeriod.Daily,
+            date: date,
+            generalPrediction: horoscopeData.General,
+            lovePrediction: horoscopeData.Love,
+            careerPrediction: horoscopeData.Career,
+            healthPrediction: horoscopeData.Health,
+            luckyNumbers: luckyNumbers,
+            luckyColors: horoscopeData.LuckyColors,
+            moodScore: horoscopeData.MoodScore,
+            keywords: horoscopeData.Keywords);
+
+        if (!horoscopeResult.IsSuccess)
         {
-            // Parse the zodiac sign from the response
-            if (!Enum.TryParse<ZodiacSign>(horoscopeData.Sign, true, out var sign))
-            {
-                return Result.Ko<List<Horoscope>>(AIErrors.InvalidResponse);
-            }
-
-            // Get the zodiac sign info for this sign
-            var zodiacSignInfo = allZodiacSigns.FirstOrDefault(z => z.Sign == sign);
-            if (zodiacSignInfo == null)
-            {
-                return Result.Ko<List<Horoscope>>(AIErrors.GenerationFailed);
-            }
-
-            // Generate lucky numbers deterministically
-            var luckyNumbers = LuckyNumberGenerator.Generate(sign, date).ToList();
-
-            // Create the Horoscope entity
-            var horoscopeResult = Horoscope.Create(
-                zodiacSignId: zodiacSignInfo.Id,
-                period: HoroscopePeriod.Daily,
-                date: date,
-                generalPrediction: horoscopeData.General,
-                lovePrediction: horoscopeData.Love,
-                careerPrediction: horoscopeData.Career,
-                healthPrediction: horoscopeData.Health,
-                luckyNumbers: luckyNumbers,
-                luckyColors: horoscopeData.LuckyColors,
-                moodScore: horoscopeData.MoodScore,
-                keywords: horoscopeData.Keywords);
-
-            if (!horoscopeResult.IsSuccess)
-            {
-                return Result.Ko<List<Horoscope>>(horoscopeResult.Errors);
-            }
-
-            horoscopes.Add(horoscopeResult.Value!);
+            return Result.Ko<Horoscope>(horoscopeResult.Errors);
         }
 
-        return Result.Ok(horoscopes);
+        return Result.Ok(horoscopeResult.Value!);
     }
 }
