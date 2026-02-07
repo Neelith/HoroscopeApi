@@ -68,7 +68,7 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
 
             if (apiResponse?.Choices == null || apiResponse.Choices.Count == 0)
             {
-                return Result.Ko<HuggingFaceHoroscopeData>(AIErrors.InvalidResponse);
+                return Result.Ko<HuggingFaceHoroscopeData>(AiErrors.InvalidResponse);
             }
 
             var generatedText = apiResponse.Choices[0].Message.Content.Trim();
@@ -102,7 +102,7 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
                     request.SignInfo.Sign,
                     request.Date,
                     generatedText);
-                return Result.Ko<HuggingFaceHoroscopeData>(AIErrors.InvalidResponse);
+                return Result.Ko<HuggingFaceHoroscopeData>(AiErrors.InvalidResponse);
             }
 
             if (!ValidateResponse(horoscopeData))
@@ -111,22 +111,22 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
                     request.SignInfo.Sign,
                     request.Date,
                     horoscopeData);
-                return Result.Ko<HuggingFaceHoroscopeData>(AIErrors.InvalidResponse);
+                return Result.Ko<HuggingFaceHoroscopeData>(AiErrors.InvalidResponse);
             }
 
             return Result.Ok(horoscopeData);
         }
         catch (OperationCanceledException)
         {
-            return Result.Ko<HuggingFaceHoroscopeData>(AIErrors.Timeout);
+            return Result.Ko<HuggingFaceHoroscopeData>(AiErrors.Timeout);
         }
         catch (JsonException)
         {
-            return Result.Ko<HuggingFaceHoroscopeData>(AIErrors.InvalidResponse);
+            return Result.Ko<HuggingFaceHoroscopeData>(AiErrors.InvalidResponse);
         }
         catch
         {
-            return Result.Ko<HuggingFaceHoroscopeData>(AIErrors.GenerationFailed);
+            return Result.Ko<HuggingFaceHoroscopeData>(AiErrors.GenerationFailed);
         }
     }
 
@@ -135,12 +135,12 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
         return statusCode switch
         {
             HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => 
-                Result.Ko<HuggingFaceHoroscopeData>(AIErrors.InvalidApiKey),
+                Result.Ko<HuggingFaceHoroscopeData>(AiErrors.InvalidApiKey),
             HttpStatusCode.TooManyRequests => 
-                Result.Ko<HuggingFaceHoroscopeData>(AIErrors.RateLimitExceeded),
+                Result.Ko<HuggingFaceHoroscopeData>(AiErrors.RateLimitExceeded),
             HttpStatusCode.ServiceUnavailable => 
-                Result.Ko<HuggingFaceHoroscopeData>(AIErrors.ModelLoading),
-            _ => Result.Ko<HuggingFaceHoroscopeData>(AIErrors.GenerationFailed)
+                Result.Ko<HuggingFaceHoroscopeData>(AiErrors.ModelLoading),
+            _ => Result.Ko<HuggingFaceHoroscopeData>(AiErrors.GenerationFailed)
         };
     }
 

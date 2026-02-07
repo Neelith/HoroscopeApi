@@ -22,7 +22,7 @@ internal static class ResultExtensions
         string? errorType = null;
         if (result.Errors.Count > 0 && result.Errors[0].Metadata != null)
         {
-            result.Errors[0].Metadata.TryGetValue(ErrorConsts.ErrorType, out errorType);
+            result.Errors[0]!.Metadata!.TryGetValue(ErrorConsts.ErrorType, out errorType);
         }
 
         // Fallback to result-level metadata if error doesn't have it

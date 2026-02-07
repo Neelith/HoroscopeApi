@@ -48,7 +48,7 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
         // Validate the sign matches
         if (!horoscopeData.Sign.Equals(sign.ToString(), StringComparison.OrdinalIgnoreCase))
         {
-            return Result.Ko<Horoscope>(AIErrors.InvalidResponse);
+            return Result.Ko<Horoscope>(AiErrors.InvalidResponse);
         }
 
         // Generate lucky numbers deterministically

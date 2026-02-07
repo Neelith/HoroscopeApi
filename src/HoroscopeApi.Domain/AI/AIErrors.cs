@@ -3,7 +3,7 @@ using HoroscopeApi.Shared.Constants;
 
 namespace HoroscopeApi.Domain.AI;
 
-public static class AIErrors
+public static class AiErrors
 {
     public static Error GenerationFailed => new(
         "AI.GenerationFailed",
