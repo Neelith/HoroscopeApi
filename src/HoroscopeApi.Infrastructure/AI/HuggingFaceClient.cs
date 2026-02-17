@@ -33,10 +33,16 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
         GenerateHoroscopeRequest request,
         CancellationToken cancellationToken = default)
     {
+        var messages = _promptBuilder.BuildMessage(request.Date, request.SignInfo);
+        return await GenerateWithMessages(messages, cancellationToken);
+    }
+
+    public async Task<Result<HuggingFaceHoroscopeData>> GenerateWithMessages(
+        List<ChatMessage> messages,
+        CancellationToken cancellationToken = default)
+    {
         try
         {
-            var messages = _promptBuilder.BuildMessage(request.Date, request.SignInfo);
-            
             var apiRequest = new
             {
                 messages = messages,
@@ -87,10 +93,7 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
             }
 
             // Log the raw AI response for debugging
-            _logger.LogDebug("Raw AI response for {Sign} on {Date}: {Response}", 
-                request.SignInfo.Sign, 
-                request.Date,
-                generatedText);
+            _logger.LogDebug("Raw AI response: {Response}", generatedText);
 
             var horoscopeData = JsonSerializer.Deserialize<HuggingFaceHoroscopeData>(
                 generatedText,
@@ -98,19 +101,13 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
 
             if (horoscopeData == null)
             {
-                _logger.LogError("Failed to deserialize AI response for {Sign} on {Date}. Raw response: {Response}", 
-                    request.SignInfo.Sign,
-                    request.Date,
-                    generatedText);
+                _logger.LogError("Failed to deserialize AI response. Raw response: {Response}", generatedText);
                 return Result.Ko<HuggingFaceHoroscopeData>(AiErrors.InvalidResponse);
             }
 
             if (!ValidateResponse(horoscopeData))
             {
-                _logger.LogError("AI response validation failed for {Sign} on {Date}. Deserialized data: {@HoroscopeData}", 
-                    request.SignInfo.Sign,
-                    request.Date,
-                    horoscopeData);
+                _logger.LogError("AI response validation failed. Deserialized data: {@HoroscopeData}", horoscopeData);
                 return Result.Ko<HuggingFaceHoroscopeData>(AiErrors.InvalidResponse);
             }
 

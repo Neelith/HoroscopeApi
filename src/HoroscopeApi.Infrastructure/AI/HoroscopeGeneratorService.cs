@@ -11,19 +11,54 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
 {
     private readonly IHuggingFaceClient _huggingFaceClient;
     private readonly IZodiacSignRepository _zodiacSignRepository;
+    private readonly IHoroscopePromptBuilder _promptBuilder;
 
     public HoroscopeGeneratorService(
         IHuggingFaceClient huggingFaceClient,
-        IZodiacSignRepository zodiacSignRepository)
+        IZodiacSignRepository zodiacSignRepository,
+        IHoroscopePromptBuilder promptBuilder)
     {
         _huggingFaceClient = huggingFaceClient;
         _zodiacSignRepository = zodiacSignRepository;
+        _promptBuilder = promptBuilder;
     }
 
     public async Task<Result<Horoscope>> GenerateDailyHoroscopeAsync(
         ZodiacSign sign,
         DateOnly date,
         CancellationToken cancellationToken = default)
+    {
+        return await GenerateHoroscopeAsync(
+            sign,
+            date,
+            HoroscopePeriod.Daily,
+            isYearly: false,
+            year: null,
+            cancellationToken);
+    }
+
+    public async Task<Result<Horoscope>> GenerateYearlyHoroscopeAsync(
+        ZodiacSign sign,
+        int year,
+        CancellationToken cancellationToken = default)
+    {
+        var date = new DateOnly(year, 1, 1);
+        return await GenerateHoroscopeAsync(
+            sign,
+            date,
+            HoroscopePeriod.Yearly,
+            isYearly: true,
+            year: year,
+            cancellationToken);
+    }
+
+    private async Task<Result<Horoscope>> GenerateHoroscopeAsync(
+        ZodiacSign sign,
+        DateOnly date,
+        HoroscopePeriod period,
+        bool isYearly,
+        int? year,
+        CancellationToken cancellationToken)
     {
         // Fetch zodiac sign info from database
         var zodiacSignQuery = new GetZodiacSignBySignRepositoryQuery(sign);
@@ -34,9 +69,17 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
             return Result.Ko<Horoscope>(ZodiacSignErrors.NotFound(sign));
         }
 
-        // Generate horoscope for the specific sign
-        var request = new GenerateHoroscopeRequest(date, zodiacSignInfo);
-        var aiResult = await _huggingFaceClient.GenerateHoroscopeAsync(request, cancellationToken);
+        // Generate horoscope using AI with appropriate prompt
+        Result<HuggingFaceHoroscopeData> aiResult;
+        if (isYearly)
+        {
+            aiResult = await GenerateWithYearlyPrompt(year!.Value, zodiacSignInfo, cancellationToken);
+        }
+        else
+        {
+            var request = new GenerateHoroscopeRequest(date, zodiacSignInfo);
+            aiResult = await _huggingFaceClient.GenerateHoroscopeAsync(request, cancellationToken);
+        }
         
         if (!aiResult.IsSuccess)
         {
@@ -57,7 +100,7 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
         // Create the Horoscope entity
         var horoscopeResult = Horoscope.Create(
             zodiacSignId: zodiacSignInfo.Id,
-            period: HoroscopePeriod.Daily,
+            period: period,
             date: date,
             generalPrediction: horoscopeData.General,
             lovePrediction: horoscopeData.Love,
@@ -74,5 +117,14 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
         }
 
         return Result.Ok(horoscopeResult.Value!);
+    }
+
+    private async Task<Result<HuggingFaceHoroscopeData>> GenerateWithYearlyPrompt(
+        int year,
+        ZodiacSignInfo zodiacSignInfo,
+        CancellationToken cancellationToken)
+    {
+        var messages = _promptBuilder.BuildYearlyMessage(year, zodiacSignInfo);
+        return await _huggingFaceClient.GenerateWithMessages(messages, cancellationToken);
     }
 }

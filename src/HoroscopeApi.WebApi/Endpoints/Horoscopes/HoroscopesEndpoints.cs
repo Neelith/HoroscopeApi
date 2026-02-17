@@ -2,6 +2,7 @@ using Carter;
 using Hermes.Handlers;
 using Hermes.Responses;
 using HoroscopeApi.Application.Features.Horoscopes.GetDailyHoroscope;
+using HoroscopeApi.Application.Features.Horoscopes.GetYearlyHoroscope;
 using HoroscopeApi.Application.Features.Shared;
 using HoroscopeApi.WebApi.Constants;
 using HoroscopeApi.WebApi.Infrastructure.Extensions;
@@ -23,6 +24,13 @@ public sealed class HoroscopesEndpoints : IEndpoints
             .Produces<Response<HoroscopeData>>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("{signName}/yearly", GetYearlyHoroscope)
+            .WithName("GetYearlyHoroscope")
+            .WithDescription("Get yearly horoscope for a zodiac sign")
+            .Produces<Response<HoroscopeData>>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
     }
 
     private static async Task<Results<Ok<Response<HoroscopeData>>, ProblemHttpResult>> GetDailyHoroscope(
@@ -32,6 +40,20 @@ public sealed class HoroscopesEndpoints : IEndpoints
         CancellationToken cancellationToken)
     {
         var query = new GetDailyHoroscopeQuery(signName, date);
+        var result = await handler.Handle(query, cancellationToken);
+
+        return result.IsSuccess
+            ? TypedResults.Ok(result.Value!)
+            : result.ToErrorResponse();
+    }
+
+    private static async Task<Results<Ok<Response<HoroscopeData>>, ProblemHttpResult>> GetYearlyHoroscope(
+        string signName,
+        int? year,
+        IQueryHandler<GetYearlyHoroscopeQuery, Response<HoroscopeData>> handler,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetYearlyHoroscopeQuery(signName, year);
         var result = await handler.Handle(query, cancellationToken);
 
         return result.IsSuccess

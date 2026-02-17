@@ -83,4 +83,83 @@ public sealed class HoroscopePromptBuilder : IHoroscopePromptBuilder
 
         return messages;
     }
+
+    public List<ChatMessage> BuildYearlyMessage(int year, ZodiacSignInfo zodiacSignInfo)
+    {
+        var messages = new List<ChatMessage>();
+
+        // System message with instructions
+        messages.Add(new ChatMessage(
+            "system",
+            "You are an expert astrologer. Generate a yearly horoscope prediction in JSON format that is positive, insightful, and meaningful. " +
+            "Focus on providing broad guidance across general outlook, love, career, and health for the entire year. " +
+            "Include relevant keywords and lucky colors. Rate the overall mood on a scale of 1-10.\n\n" +
+            "IMPORTANT: Return ONLY a single flat JSON object. Do NOT wrap it in an array. Do NOT use a 'horoscopes' key or any other wrapper.\n\n" +
+            "Required JSON structure:\n" +
+            "{\n" +
+            "  \"sign\": \"aries\",\n" +
+            "  \"general\": \"...\",\n" +
+            "  \"love\": \"...\",\n" +
+            "  \"career\": \"...\",\n" +
+            "  \"health\": \"...\",\n" +
+            "  \"keywords\": [\"word1\", \"word2\", \"word3\"],\n" +
+            "  \"luckyColors\": [\"color1\", \"color2\"],\n" +
+            "  \"moodScore\": 8\n" +
+            "}"
+        ));
+
+        // Few-shot Example 1: Aries
+        messages.Add(new ChatMessage(
+            "user",
+            "Generate yearly horoscope prediction for aries for 2024.\n\n" +
+            "Aries: Fire element, Cardinal quality, ruled by Mars. The Ram - bold, pioneering, and energetic.\n\n" +
+            "Return a single JSON object (not an array)."
+        ));
+
+        messages.Add(new ChatMessage(
+            "assistant",
+            "{\n" +
+            "  \"sign\": \"aries\",\n" +
+            "  \"general\": \"2024 brings transformative energy for Aries, marking a year of significant personal growth and new beginnings. The first quarter emphasizes career advancement and professional recognition, while summer months offer opportunities for travel and expanding your horizons. Autumn presents chances to deepen relationships and forge meaningful connections. Throughout the year, your natural leadership qualities will be called upon, and you'll find yourself in positions where your pioneering spirit can truly shine. Planetary alignments suggest that risks taken with careful consideration will pay off handsomely. The year closes with renewed confidence and clarity about your path forward, setting the stage for even greater achievements ahead.\",\n" +
+            "  \"love\": \"Romance flourishes throughout 2024, with particularly auspicious periods during spring and late autumn. Single Aries may encounter a significant connection around March or November, potentially through professional networks or while pursuing personal passions. Existing relationships deepen through shared adventures and honest communication. The middle of the year tests partnerships, but those willing to grow together emerge stronger. Your passionate nature attracts admirers, but focus on quality over quantity. By year's end, you'll have a clearer vision of what you truly seek in partnership, whether that's commitment with a current partner or readiness for new romantic possibilities.\",\n" +
+            "  \"career\": \"Professional success defines 2024 for Aries, with major opportunities emerging in the first and third quarters. Leadership roles or independent ventures gain momentum, and your innovative ideas receive recognition from influential figures. Financial growth accompanies career advancement, though wise budgeting in summer months proves beneficial. Collaborations formed this year could extend beyond 2024, creating lasting professional networks. Midyear may bring a pivotal decision about your career direction - trust your instincts. By December, you'll have established yourself as a force to be reckoned with in your field, with exciting prospects lined up for the coming year.\",\n" +
+            "  \"health\": \"Physical vitality runs strong throughout 2024, though mindful attention to work-life balance proves essential. The year favors establishing sustainable fitness routines rather than intense short-term programs. Spring is ideal for starting new wellness practices, while autumn calls for rest and recuperation. Mental health benefits from creative outlets and outdoor activities. Watch for stress accumulation during career-intensive periods, particularly in summer. Regular movement, adequate sleep, and stress management techniques keep you operating at peak performance. The year ends with you feeling energized and prepared for future challenges, having learned to honor your body's needs alongside your ambitious drive.\",\n" +
+            "  \"keywords\": [\"transformation\", \"leadership\", \"growth\"],\n" +
+            "  \"luckyColors\": [\"crimson\", \"gold\"],\n" +
+            "  \"moodScore\": 9\n" +
+            "}"
+        ));
+
+        // Few-shot Example 2: Leo
+        messages.Add(new ChatMessage(
+            "user",
+            "Generate yearly horoscope prediction for leo for 2025.\n\n" +
+            "Leo: Fire element, Fixed quality, ruled by the Sun. The Lion - charismatic, generous, and creative.\n\n" +
+            "Return a single JSON object (not an array)."
+        ));
+
+        messages.Add(new ChatMessage(
+            "assistant",
+            "{\n" +
+            "  \"sign\": \"leo\",\n" +
+            "  \"general\": \"2025 shines brightly for Leo, emphasizing creative expression and personal fulfillment. The year begins with renewed confidence and clarity about your life's direction. Spring brings opportunities to showcase your talents on larger platforms, while summer months deepen your understanding of what truly matters. Autumn presents chances for meaningful collaborations that align with your values. Your natural charisma attracts influential supporters throughout the year, opening doors you hadn't previously considered. The latter half of 2025 focuses on consolidating gains and building sustainable foundations for long-term success. By year's end, you'll have transformed aspirations into tangible achievements, standing proud of how far you've come.\",\n" +
+            "  \"love\": \"Love takes center stage in 2025, with romance flourishing in unexpected ways. Single Leos may experience a profound connection during spring or early autumn, possibly with someone from a different background or culture. Existing relationships benefit from renewed passion and deeper emotional intimacy. The middle months test your ability to balance personal needs with partnership demands, but communication breakthroughs around August strengthen bonds. Your generous heart attracts genuine affection, though discernment helps you distinguish flattery from authentic admiration. Creative dates and grand gestures keep romance alive. The year concludes with you feeling loved and appreciated, whether in a committed partnership or confidently embracing single life while open to possibilities.\",\n" +
+            "  \"career\": \"Professional achievements reach new heights in 2025, with recognition for your creative contributions and leadership abilities. The first quarter brings opportunities to take on more visible roles or launch passion projects. Financial rewards follow your efforts, though midyear requires strategic thinking about long-term career direction. Collaborations with equally talented individuals produce exceptional results, particularly in creative or leadership-focused fields. Your ability to inspire others opens mentorship opportunities that benefit both you and emerging talent. Autumn may present a significant career milestone or achievement that validates years of hard work. December finds you well-positioned for continued success, with exciting projects lined up for the coming year.\",\n" +
+            "  \"health\": \"Vitality and wellness flourish in 2025 when you prioritize joy alongside discipline. The year favors activities that bring pleasure - dancing, creative movement, or social sports that combine fitness with fun. Heart health deserves attention, both physical and emotional. Spring is ideal for establishing wellness routines that you genuinely enjoy, ensuring long-term adherence. Summer calls for balance between activity and rest, while autumn emphasizes stress management through creative outlets. Your natural exuberance serves you well, though learning to pace yourself prevents burnout. By year's end, you've discovered wellness approaches that honor your need for both vitality and pleasure, feeling radiant inside and out.\",\n" +
+            "  \"keywords\": [\"radiance\", \"achievement\", \"passion\"],\n" +
+            "  \"luckyColors\": [\"gold\", \"royal purple\"],\n" +
+            "  \"moodScore\": 9\n" +
+            "}"
+        ));
+
+        // Final request for the specific sign
+        messages.Add(new ChatMessage(
+            "user",
+            $"Generate yearly horoscope prediction for {zodiacSignInfo.Name.ToLowerInvariant()} for {year}.\n\n" +
+            $"{zodiacSignInfo.Name}: {zodiacSignInfo.Element} element, {zodiacSignInfo.Quality} quality, ruled by {zodiacSignInfo.RulingPlanet}. {zodiacSignInfo.Description}\n\n" +
+            "Return a single JSON object (not an array)."
+        ));
+
+        return messages;
+    }
 }
