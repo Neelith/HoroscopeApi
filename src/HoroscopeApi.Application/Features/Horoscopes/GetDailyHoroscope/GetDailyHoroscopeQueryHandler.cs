@@ -22,10 +22,7 @@ internal sealed class GetDailyHoroscopeQueryHandler(
         GetDailyHoroscopeQuery query,
         CancellationToken cancellationToken)
     {
-        if (!Enum.TryParse<ZodiacSign>(query.SignName, true, out var zodiacSign))
-        {
-            return Result.Ko<Response<HoroscopeData>>(ZodiacSignErrors.InvalidName);
-        }
+        Enum.TryParse<ZodiacSign>(query.SignName, true, out var zodiacSign);
 
         var zodiacSignQuery = new GetZodiacSignBySignRepositoryQuery(zodiacSign);
         var signInfo = await zodiacSignRepository.GetBySignAsync(zodiacSignQuery, cancellationToken);
