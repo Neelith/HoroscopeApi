@@ -1,3 +1,5 @@
+using HoroscopeApi.Domain.Horoscopes;
+
 namespace HoroscopeApi.Application.Features.Shared;
 
 public sealed record HoroscopeData
@@ -11,4 +13,45 @@ public sealed record HoroscopeData
     public required List<string> LuckyColors { get; init; }
     public required int MoodScore { get; init; }
     public required List<string> Keywords { get; init; }
+    
+    public static HoroscopeData ToHoroscopeData(Horoscope horoscope)
+    {
+        var signInfo = horoscope.ZodiacSignInfo;
+        
+        return new HoroscopeData
+        {
+            Sign = horoscope.ZodiacSignInfo.Sign.ToString().ToLowerInvariant(),
+            SignInfo = new ZodiacSignInfoData
+            {
+                Name = signInfo.Name,
+                Symbol = signInfo.Symbol,
+                Element = signInfo.Element.ToString(),
+                Quality = signInfo.Quality.ToString(),
+                Polarity = signInfo.Polarity.ToString(),
+                RulingPlanet = signInfo.RulingPlanet,
+                DateRange = GetDateRangeString(signInfo.StartMonth, signInfo.StartDay, signInfo.EndMonth, signInfo.EndDay),
+                Description = signInfo.Description
+            },
+            Period = horoscope.Period.ToString().ToLowerInvariant(),
+            Date = horoscope.Date,
+            Predictions = new HoroscopePredictions
+            {
+                General = horoscope.GeneralPrediction,
+                Love = horoscope.LovePrediction,
+                Career = horoscope.CareerPrediction,
+                Health = horoscope.HealthPrediction
+            },
+            LuckyNumbers = horoscope.LuckyNumbers,
+            LuckyColors = horoscope.LuckyColors,
+            MoodScore = horoscope.MoodScore,
+            Keywords = horoscope.Keywords
+        };
+    }
+    
+    private static string GetDateRangeString(int startMonth, int startDay, int endMonth, int endDay)
+    {
+        var startMonthName = new DateOnly(2000, startMonth, 1).ToString("MMMM");
+        var endMonthName = new DateOnly(2000, endMonth, 1).ToString("MMMM");
+        return $"{startMonthName} {startDay} - {endMonthName} {endDay}";
+    }
 }

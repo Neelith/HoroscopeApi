@@ -11,6 +11,16 @@ public interface IHoroscopeGeneratorService
         DateOnly date,
         CancellationToken cancellationToken = default);
     
+    Task<Result<Horoscope>> GenerateWeeklyHoroscopeAsync(
+        ZodiacSign sign,
+        DateOnly date,
+        CancellationToken cancellationToken = default);
+    
+    Task<Result<Horoscope>> GenerateMonthlyHoroscopeAsync(
+        ZodiacSign sign,
+        DateOnly date,
+        CancellationToken cancellationToken = default);
+    
     Task<Result<Horoscope>> GenerateYearlyHoroscopeAsync(
         ZodiacSign sign,
         int year,

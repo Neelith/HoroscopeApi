@@ -1,11 +1,12 @@
 using FluentValidation;
+using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.ZodiacSigns;
 
-namespace HoroscopeApi.Application.Features.Horoscopes.GetDailyHoroscope;
+namespace HoroscopeApi.Application.Features.Horoscopes.GetHoroscope;
 
-internal sealed class GetDailyHoroscopeQueryValidator : AbstractValidator<GetDailyHoroscopeQuery>
+internal sealed class GetHoroscopeQueryValidator : AbstractValidator<GetHoroscopeQuery>
 {
-    public GetDailyHoroscopeQueryValidator()
+    public GetHoroscopeQueryValidator()
     {
         RuleFor(x => x.SignName)
             .NotEmpty()
@@ -13,6 +14,13 @@ internal sealed class GetDailyHoroscopeQueryValidator : AbstractValidator<GetDai
             .Must(BeValidZodiacSign)
             .WithMessage("Invalid zodiac sign name.");
 
+        // Period validation - only validate if Date is not provided
+        RuleFor(x => x.Period)
+            .IsInEnum()
+            .When(x => x.Period.HasValue && !x.Date.HasValue)
+            .WithMessage("Invalid horoscope period.");
+
+        // Date validation - validate when Date is provided
         RuleFor(x => x.Date)
             .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow.AddYears(1)))
             .When(x => x.Date.HasValue)

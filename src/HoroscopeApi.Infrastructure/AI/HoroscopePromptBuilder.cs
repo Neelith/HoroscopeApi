@@ -84,6 +84,122 @@ public sealed class HoroscopePromptBuilder : IHoroscopePromptBuilder
         return messages;
     }
 
+    public List<ChatMessage> BuildWeeklyMessage(DateOnly date, ZodiacSignInfo zodiacSignInfo)
+    {
+        var messages = new List<ChatMessage>();
+
+        // System message with instructions
+        messages.Add(new ChatMessage(
+            "system",
+            "You are an expert astrologer. Generate a weekly horoscope prediction in JSON format that is positive, insightful, and meaningful. " +
+            "Focus on providing guidance across general outlook, love, career, and health for the entire week. " +
+            "Include relevant keywords and lucky colors. Rate the overall mood on a scale of 1-10.\n\n" +
+            "IMPORTANT: Return ONLY a single flat JSON object. Do NOT wrap it in an array. Do NOT use a 'horoscopes' key or any other wrapper.\n\n" +
+            "Required JSON structure:\n" +
+            "{\n" +
+            "  \"sign\": \"aries\",\n" +
+            "  \"general\": \"...\",\n" +
+            "  \"love\": \"...\",\n" +
+            "  \"career\": \"...\",\n" +
+            "  \"health\": \"...\",\n" +
+            "  \"keywords\": [\"word1\", \"word2\", \"word3\"],\n" +
+            "  \"luckyColors\": [\"color1\", \"color2\"],\n" +
+            "  \"moodScore\": 8\n" +
+            "}"
+        ));
+
+        // Few-shot Example: Aries
+        messages.Add(new ChatMessage(
+            "user",
+            "Generate weekly horoscope prediction for aries for the week starting 2024-01-15.\n\n" +
+            "Aries: Fire element, Cardinal quality, ruled by Mars. The Ram - bold, pioneering, and energetic.\n\n" +
+            "Return a single JSON object (not an array)."
+        ));
+
+        messages.Add(new ChatMessage(
+            "assistant",
+            "{\n" +
+            "  \"sign\": \"aries\",\n" +
+            "  \"general\": \"This week brings dynamic energy as Mars amplifies your natural drive and determination. Monday and Tuesday are perfect for launching new initiatives or tackling challenging projects that require courage and innovation. Midweek brings unexpected opportunities through networking and social connections - keep your schedule flexible to accommodate spontaneous meetings. Thursday and Friday favor collaborative efforts where your leadership naturally emerges. The weekend offers a chance to reflect on your progress while recharging your batteries. Throughout the week, your confidence attracts positive attention, but remember to balance assertiveness with diplomacy. By Sunday, you'll have made significant strides toward your goals while strengthening key relationships.\",\n" +
+            "  \"love\": \"Romance blooms early in the week with passionate encounters and meaningful conversations. Single Aries should be especially social on Tuesday and Wednesday when romantic prospects are highest. Those in relationships benefit from planning a special midweek date that reignites the spark. Weekend energy supports deeper emotional bonding and honest sharing of feelings. Your magnetic charm is particularly strong, making this an excellent week to express your desires openly. Friday brings an opportunity to resolve any lingering relationship tensions through direct but compassionate communication.\",\n" +
+            "  \"career\": \"Professional momentum builds throughout the week, with Monday being ideal for pitching innovative ideas to decision-makers. Collaborative projects gain traction midweek, and your problem-solving abilities shine in team settings. Thursday may bring recognition for past accomplishments or news about advancement opportunities. Financial discussions toward the end of the week could lead to improved compensation or new income streams. Trust your instincts when evaluating business proposals. The weekend is perfect for strategic planning and setting goals for the coming weeks.\",\n" +
+            "  \"health\": \"Physical energy runs high, making this an excellent week to intensify your fitness routine or try new athletic activities. Monday through Wednesday are ideal for vigorous exercise, while Thursday and Friday favor gentler movement like yoga or stretching. Mental clarity peaks midweek, supporting meditation or mindfulness practices. Ensure adequate rest despite your desire to stay constantly active - your body needs recovery time. Stay hydrated and maintain balanced nutrition to sustain your high energy levels. The weekend calls for relaxation and self-care to prepare for the week ahead.\",\n" +
+            "  \"keywords\": [\"dynamic\", \"courageous\", \"progressive\"],\n" +
+            "  \"luckyColors\": [\"red\", \"scarlet\"],\n" +
+            "  \"moodScore\": 8\n" +
+            "}"
+        ));
+
+        // Final request for the specific sign
+        messages.Add(new ChatMessage(
+            "user",
+            $"Generate weekly horoscope prediction for {zodiacSignInfo.Name.ToLowerInvariant()} for the week starting {date:yyyy-MM-dd}.\n\n" +
+            $"{zodiacSignInfo.Name}: {zodiacSignInfo.Element} element, {zodiacSignInfo.Quality} quality, ruled by {zodiacSignInfo.RulingPlanet}. {zodiacSignInfo.Description}\n\n" +
+            "Return a single JSON object (not an array)."
+        ));
+
+        return messages;
+    }
+
+    public List<ChatMessage> BuildMonthlyMessage(DateOnly date, ZodiacSignInfo zodiacSignInfo)
+    {
+        var messages = new List<ChatMessage>();
+
+        // System message with instructions
+        messages.Add(new ChatMessage(
+            "system",
+            "You are an expert astrologer. Generate a monthly horoscope prediction in JSON format that is positive, insightful, and meaningful. " +
+            "Focus on providing guidance across general outlook, love, career, and health for the entire month. " +
+            "Include relevant keywords and lucky colors. Rate the overall mood on a scale of 1-10.\n\n" +
+            "IMPORTANT: Return ONLY a single flat JSON object. Do NOT wrap it in an array. Do NOT use a 'horoscopes' key or any other wrapper.\n\n" +
+            "Required JSON structure:\n" +
+            "{\n" +
+            "  \"sign\": \"aries\",\n" +
+            "  \"general\": \"...\",\n" +
+            "  \"love\": \"...\",\n" +
+            "  \"career\": \"...\",\n" +
+            "  \"health\": \"...\",\n" +
+            "  \"keywords\": [\"word1\", \"word2\", \"word3\"],\n" +
+            "  \"luckyColors\": [\"color1\", \"color2\"],\n" +
+            "  \"moodScore\": 8\n" +
+            "}"
+        ));
+
+        // Few-shot Example: Aries
+        messages.Add(new ChatMessage(
+            "user",
+            "Generate monthly horoscope prediction for aries for January 2024.\n\n" +
+            "Aries: Fire element, Cardinal quality, ruled by Mars. The Ram - bold, pioneering, and energetic.\n\n" +
+            "Return a single JSON object (not an array)."
+        ));
+
+        messages.Add(new ChatMessage(
+            "assistant",
+            "{\n" +
+            "  \"sign\": \"aries\",\n" +
+            "  \"general\": \"January 2024 marks a powerful month of new beginnings and bold initiatives for Aries. The first two weeks bring exceptional clarity about your goals and the courage to pursue them fearlessly. Mars energizes your ambitions throughout the month, making this ideal for launching projects you've been planning. Mid-month planetary alignments support networking and collaborative ventures that expand your influence. The third week may present unexpected challenges, but your natural problem-solving abilities turn obstacles into opportunities. As the month closes, you'll find yourself in a stronger position than when it began, with momentum building for continued success. Overall, January sets a dynamic tone for your entire year, establishing patterns of growth and achievement.\",\n" +
+            "  \"love\": \"Romance flourishes this January, particularly during the first and last weeks of the month. Single Aries encounter intriguing prospects through social events or while pursuing personal passions around mid-month. Those in relationships experience renewed passion and deeper emotional connection, especially after the 15th when communication flows more freely. Plan meaningful experiences together to strengthen your bond. The month favors honest conversations about relationship goals and future plans. Your magnetic energy attracts admiration throughout January, but focus on authentic connections rather than superficial attractions. By month's end, you'll have greater clarity about what you seek in partnership, whether deepening current relationships or opening yourself to new romantic possibilities.\",\n" +
+            "  \"career\": \"Professional opportunities abound in January, with the first week being particularly auspicious for pitching innovative ideas or requesting advancement. Your leadership qualities gain recognition from superiors, potentially leading to increased responsibilities or promotions around mid-month. Collaborative projects initiated now have excellent long-term potential. Financial prospects improve steadily, with possible raises or new income streams emerging in the latter half of the month. Networking events prove especially valuable around the 20th. Any career risks taken with proper planning tend to pay off handsomely. End the month by strategizing for the coming months - your January momentum can carry you far into the year.\",\n" +
+            "  \"health\": \"Physical vitality runs strong throughout January, making this an excellent month to establish new fitness routines or intensify existing ones. The first two weeks are ideal for starting ambitious wellness programs. Energy levels remain high, but avoid overexertion around mid-month when your enthusiasm might exceed your limits. Mental clarity supports meditation and mindfulness practices, particularly during the third week. Ensure adequate rest and recovery time despite your drive to stay constantly active. Balanced nutrition and proper hydration are essential to maintain your high performance level. By month's end, you'll have established sustainable health habits that serve you throughout the year, feeling energized and prepared for upcoming challenges.\",\n" +
+            "  \"keywords\": [\"initiative\", \"momentum\", \"vitality\"],\n" +
+            "  \"luckyColors\": [\"crimson\", \"gold\"],\n" +
+            "  \"moodScore\": 9\n" +
+            "}"
+        ));
+
+        // Final request for the specific sign
+        var monthName = date.ToString("MMMM");
+        var year = date.Year;
+        messages.Add(new ChatMessage(
+            "user",
+            $"Generate monthly horoscope prediction for {zodiacSignInfo.Name.ToLowerInvariant()} for {monthName} {year}.\n\n" +
+            $"{zodiacSignInfo.Name}: {zodiacSignInfo.Element} element, {zodiacSignInfo.Quality} quality, ruled by {zodiacSignInfo.RulingPlanet}. {zodiacSignInfo.Description}\n\n" +
+            "Return a single JSON object (not an array)."
+        ));
+
+        return messages;
+    }
+
     public List<ChatMessage> BuildYearlyMessage(int year, ZodiacSignInfo zodiacSignInfo)
     {
         var messages = new List<ChatMessage>();

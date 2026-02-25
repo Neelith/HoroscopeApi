@@ -37,6 +37,34 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
             cancellationToken);
     }
 
+    public async Task<Result<Horoscope>> GenerateWeeklyHoroscopeAsync(
+        ZodiacSign sign,
+        DateOnly date,
+        CancellationToken cancellationToken = default)
+    {
+        return await GenerateHoroscopeAsync(
+            sign,
+            date,
+            HoroscopePeriod.Weekly,
+            isYearly: false,
+            year: null,
+            cancellationToken);
+    }
+
+    public async Task<Result<Horoscope>> GenerateMonthlyHoroscopeAsync(
+        ZodiacSign sign,
+        DateOnly date,
+        CancellationToken cancellationToken = default)
+    {
+        return await GenerateHoroscopeAsync(
+            sign,
+            date,
+            HoroscopePeriod.Monthly,
+            isYearly: false,
+            year: null,
+            cancellationToken);
+    }
+
     public async Task<Result<Horoscope>> GenerateYearlyHoroscopeAsync(
         ZodiacSign sign,
         int year,
@@ -74,6 +102,14 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
         if (isYearly)
         {
             aiResult = await GenerateWithYearlyPrompt(year!.Value, zodiacSignInfo, cancellationToken);
+        }
+        else if (period == HoroscopePeriod.Weekly)
+        {
+            aiResult = await GenerateWithWeeklyPrompt(date, zodiacSignInfo, cancellationToken);
+        }
+        else if (period == HoroscopePeriod.Monthly)
+        {
+            aiResult = await GenerateWithMonthlyPrompt(date, zodiacSignInfo, cancellationToken);
         }
         else
         {
@@ -125,6 +161,24 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
         CancellationToken cancellationToken)
     {
         var messages = _promptBuilder.BuildYearlyMessage(year, zodiacSignInfo);
+        return await _huggingFaceClient.GenerateWithMessages(messages, cancellationToken);
+    }
+
+    private async Task<Result<HuggingFaceHoroscopeData>> GenerateWithWeeklyPrompt(
+        DateOnly date,
+        ZodiacSignInfo zodiacSignInfo,
+        CancellationToken cancellationToken)
+    {
+        var messages = _promptBuilder.BuildWeeklyMessage(date, zodiacSignInfo);
+        return await _huggingFaceClient.GenerateWithMessages(messages, cancellationToken);
+    }
+
+    private async Task<Result<HuggingFaceHoroscopeData>> GenerateWithMonthlyPrompt(
+        DateOnly date,
+        ZodiacSignInfo zodiacSignInfo,
+        CancellationToken cancellationToken)
+    {
+        var messages = _promptBuilder.BuildMonthlyMessage(date, zodiacSignInfo);
         return await _huggingFaceClient.GenerateWithMessages(messages, cancellationToken);
     }
 }

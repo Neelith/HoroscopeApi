@@ -15,7 +15,7 @@ internal sealed class HoroscopeRepository(ApplicationDbContext context) : IHoros
             .Include(h => h.ZodiacSignInfo)
             .AsNoTracking()
             .FirstOrDefaultAsync(
-                h => h.ZodiacSignId == query.ZodiacSignId && h.Period == query.Period && h.Date == query.Date,
+                h => h.ZodiacSignInfo.Sign == query.Sign && h.Period == query.Period && h.Date == query.Date,
                 cancellationToken);
     }
 
@@ -26,7 +26,7 @@ internal sealed class HoroscopeRepository(ApplicationDbContext context) : IHoros
         return await context.Horoscopes
             .Include(h => h.ZodiacSignInfo)
             .AsNoTracking()
-            .Where(h => h.ZodiacSignId == query.ZodiacSignId
+            .Where(h => h.ZodiacSignInfo.Sign == query.Sign
                 && h.Period == query.Period
                 && h.Date >= query.StartDate
                 && h.Date <= query.EndDate)
