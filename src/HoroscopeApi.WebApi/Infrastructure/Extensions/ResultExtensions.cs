@@ -6,12 +6,12 @@ namespace HoroscopeApi.WebApi.Infrastructure.Extensions;
 
 internal static class ResultExtensions
 {
-    public static ProblemHttpResult ToErrorResponse<T>(this Result<T> result)
+    public static IResult ToErrorResponse<T>(this Result<T> result)
     {
         return ToErrorResponse(result as Result);
     }
 
-    public static ProblemHttpResult ToErrorResponse(this Result result)
+    public static IResult ToErrorResponse(this Result result)
     {
         if (result is null || result.IsSuccess)
         {
@@ -45,7 +45,7 @@ internal static class ResultExtensions
         };
     }
 
-    private static ProblemHttpResult ToProblem(this Result result, HttpStatusCode statusCode)
+    private static IResult ToProblem(this Result result, HttpStatusCode statusCode)
     {
         var errors = result.Errors.Count > 1
             ? string.Join("\n---\n", result.Errors.Select(e => e.Message))

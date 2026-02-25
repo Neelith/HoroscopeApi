@@ -18,7 +18,20 @@ public sealed class HoroscopesEndpoints : IEndpoints
             .WithTags(Tags.Horoscopes)
             .WithDescription("Horoscope reading endpoints");
 
-        group.MapGet("{signName}", GetHoroscope)
+        group.MapGet("{signName}", handler: async (
+                string signName,
+                HoroscopePeriod? period,
+                DateOnly? date,
+                IQueryHandler<GetHoroscopeQuery, Response<HoroscopeData>> handler,
+                CancellationToken cancellationToken) =>
+            {
+                var query = new GetHoroscopeQuery(signName, period, date);
+                var result = await handler.Handle(query, cancellationToken);
+
+                return result.IsSuccess
+                    ? TypedResults.Ok(result.Value!)
+                    : result.ToErrorResponse();
+            })
             .WithName("GetHoroscope")
             .WithDescription(
                 "Get horoscope for a zodiac sign. " +
@@ -28,20 +41,5 @@ public sealed class HoroscopesEndpoints : IEndpoints
             .Produces<Response<HoroscopeData>>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
-    }
-
-    private static async Task<Results<Ok<Response<HoroscopeData>>, ProblemHttpResult>> GetHoroscope(
-        string signName,
-        HoroscopePeriod? period,
-        DateOnly? date,
-        IQueryHandler<GetHoroscopeQuery, Response<HoroscopeData>> handler,
-        CancellationToken cancellationToken)
-    {
-        var query = new GetHoroscopeQuery(signName, period, date);
-        var result = await handler.Handle(query, cancellationToken);
-
-        return result.IsSuccess
-            ? TypedResults.Ok(result.Value!)
-            : result.ToErrorResponse();
     }
 }
