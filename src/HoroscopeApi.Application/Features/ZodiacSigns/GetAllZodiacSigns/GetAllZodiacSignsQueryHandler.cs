@@ -1,6 +1,5 @@
-using Hermes.Handlers;
-using Hermes.Responses;
 using HoroscopeApi.Application.Features.Shared;
+using HoroscopeApi.Domain.ZodiacSigns;
 using HoroscopeApi.Domain.ZodiacSigns.Repositories;
 
 namespace HoroscopeApi.Application.Features.ZodiacSigns.GetAllZodiacSigns;
@@ -12,9 +11,9 @@ internal sealed class GetAllZodiacSignsQueryHandler(IZodiacSignRepository reposi
         GetAllZodiacSignsQuery query,
         CancellationToken cancellationToken)
     {
-        var zodiacSigns = await repository.GetAllAsync(cancellationToken);
+        List<ZodiacSignInfo> zodiacSigns = await repository.GetAllAsync(cancellationToken);
 
-        var dataList = zodiacSigns.Select(z => new ZodiacSignInfoData
+        List<ZodiacSignInfoData> dataList = zodiacSigns.Select(z => new ZodiacSignInfoData
         {
             Name = z.Name,
             Symbol = z.Symbol,
@@ -26,14 +25,14 @@ internal sealed class GetAllZodiacSignsQueryHandler(IZodiacSignRepository reposi
             Description = z.Description
         }).ToList();
 
-        var response = PagedResponse<ZodiacSignInfoData>.Create(dataList, dataList.Count);
+        PagedResponse<ZodiacSignInfoData> response = PagedResponse<ZodiacSignInfoData>.Create(dataList, dataList.Count);
         return Result.Ok(response);
     }
 
     private static string GetDateRangeString(int startMonth, int startDay, int endMonth, int endDay)
     {
-        var startMonthName = new DateOnly(2000, startMonth, 1).ToString("MMMM");
-        var endMonthName = new DateOnly(2000, endMonth, 1).ToString("MMMM");
+        string startMonthName = new DateOnly(2000, startMonth, 1).ToString("MMMM");
+        string endMonthName = new DateOnly(2000, endMonth, 1).ToString("MMMM");
         return $"{startMonthName} {startDay} - {endMonthName} {endDay}";
     }
 }

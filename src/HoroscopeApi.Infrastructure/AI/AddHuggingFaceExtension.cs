@@ -11,7 +11,7 @@ public static class AddHuggingFaceExtension
         IConfiguration configuration)
     {
         // Register settings
-        var settingsSection = configuration.GetSection("HuggingFace");
+        IConfigurationSection settingsSection = configuration.GetSection("HuggingFace");
         services.Configure<HuggingFaceSettings>(settingsSection);
 
         // Register HttpClient for HuggingFaceClient

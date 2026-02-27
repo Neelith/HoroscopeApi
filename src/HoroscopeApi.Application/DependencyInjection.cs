@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Reflection;
 using HoroscopeApi.Application.Infrastructure.Handlers;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HoroscopeApi.Application;
 
@@ -8,7 +9,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         //Register application services here
-        var assembly = typeof(DependencyInjection).Assembly;
+        Assembly assembly = typeof(DependencyInjection).Assembly;
 
         //Register handlers and validators
         services

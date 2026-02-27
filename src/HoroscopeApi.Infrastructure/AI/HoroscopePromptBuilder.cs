@@ -7,7 +7,7 @@ public sealed class HoroscopePromptBuilder : IHoroscopePromptBuilder
 {
     public List<ChatMessage> BuildMessage(DateOnly date, ZodiacSignInfo zodiacSignInfo)
     {
-        var messages = new List<ChatMessage>();
+        List<ChatMessage> messages = new();
 
         // System message with instructions
         messages.Add(new ChatMessage(
@@ -86,7 +86,7 @@ public sealed class HoroscopePromptBuilder : IHoroscopePromptBuilder
 
     public List<ChatMessage> BuildWeeklyMessage(DateOnly date, ZodiacSignInfo zodiacSignInfo)
     {
-        var messages = new List<ChatMessage>();
+        List<ChatMessage> messages = new();
 
         // System message with instructions
         messages.Add(new ChatMessage(
@@ -143,7 +143,7 @@ public sealed class HoroscopePromptBuilder : IHoroscopePromptBuilder
 
     public List<ChatMessage> BuildMonthlyMessage(DateOnly date, ZodiacSignInfo zodiacSignInfo)
     {
-        var messages = new List<ChatMessage>();
+        List<ChatMessage> messages = new();
 
         // System message with instructions
         messages.Add(new ChatMessage(
@@ -188,8 +188,8 @@ public sealed class HoroscopePromptBuilder : IHoroscopePromptBuilder
         ));
 
         // Final request for the specific sign
-        var monthName = date.ToString("MMMM");
-        var year = date.Year;
+        string monthName = date.ToString("MMMM");
+        int year = date.Year;
         messages.Add(new ChatMessage(
             "user",
             $"Generate monthly horoscope prediction for {zodiacSignInfo.Name.ToLowerInvariant()} for {monthName} {year}.\n\n" +
@@ -202,7 +202,7 @@ public sealed class HoroscopePromptBuilder : IHoroscopePromptBuilder
 
     public List<ChatMessage> BuildYearlyMessage(int year, ZodiacSignInfo zodiacSignInfo)
     {
-        var messages = new List<ChatMessage>();
+        List<ChatMessage> messages = new();
 
         // System message with instructions
         messages.Add(new ChatMessage(

@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using HoroscopeApi.Shared.Time;
+﻿using HoroscopeApi.Shared.Time;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HoroscopeApi.Infrastructure.Time;
 

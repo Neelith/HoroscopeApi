@@ -1,98 +1,98 @@
 using System.Reflection;
-using Microsoft.EntityFrameworkCore;
 using HoroscopeApi.Application.Infrastructure.Persistance;
 using HoroscopeApi.Application.Infrastructure.User;
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.ZodiacSigns;
 using HoroscopeApi.Shared.Domain;
 using HoroscopeApi.Shared.Time;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace HoroscopeApi.Infrastructure.Persistence
+namespace HoroscopeApi.Infrastructure.Persistence;
+
+internal class ApplicationDbContext(
+    DbContextOptions<ApplicationDbContext> options,
+    IDateTimeProvider dateTimeProvider,
+    ICurrentUserService currentUserService)
+    : DbContext(options), IUnitOfWork
 {
-    internal class ApplicationDbContext(
-        DbContextOptions<ApplicationDbContext> options,
-        IDateTimeProvider dateTimeProvider,
-        ICurrentUserService currentUserService)
-        : DbContext(options), IUnitOfWork
+    public DbSet<ZodiacSignInfo> ZodiacSigns { get; set; }
+    public DbSet<Horoscope> Horoscopes { get; set; }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {
-        public DbSet<ZodiacSignInfo> ZodiacSigns { get; set; }
-        public DbSet<Horoscope> Horoscopes { get; set; }
+        SetAuditablePropertiesOnCreatedEntities();
 
-        protected override void OnModelCreating(ModelBuilder builder)
+        SetAuditablePropertiesOnUpdatedEntities();
+
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task BeginTransactionAsync(CancellationToken cancellationToken)
+    {
+        if (Database.CurrentTransaction is not null)
         {
-            base.OnModelCreating(builder);
-            builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+            throw new InvalidOperationException("A transaction is already in progress.");
         }
 
-        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+        await Database.BeginTransactionAsync(cancellationToken);
+    }
+
+    public async Task CommitTransactionAsync(CancellationToken cancellationToken)
+    {
+        if (Database.CurrentTransaction is null)
         {
-            SetAuditablePropertiesOnCreatedEntities();
-
-            SetAuditablePropertiesOnUpdatedEntities();
-
-            return base.SaveChangesAsync(cancellationToken);
+            throw new InvalidOperationException("No transaction is in progress to commit.");
         }
 
-        private void SetAuditablePropertiesOnCreatedEntities()
+        await Database.CurrentTransaction.CommitAsync(cancellationToken);
+    }
+
+    public async Task RollbackTransactionAsync(CancellationToken cancellationToken)
+    {
+        if (Database.CurrentTransaction is null)
         {
-            var entitiesBeignCreated = ChangeTracker.Entries<AuditableEntity>()
-                .Where(entry => entry.State == EntityState.Added);
-
-            string createdBy = currentUserService.IsCurrentUserAuthenticated()
-                ? currentUserService.GetCurrentUserId()
-                : "system";
-
-            foreach (var entry in entitiesBeignCreated)
-            {
-                entry.Entity.CreatedAtUtc = dateTimeProvider.UtcNow;
-                entry.Entity.CreatedBy = createdBy;
-            }
+            throw new InvalidOperationException("No transaction is in progress to roll back.");
         }
 
-        private void SetAuditablePropertiesOnUpdatedEntities()
+        await Database.CurrentTransaction.RollbackAsync(cancellationToken);
+    }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+        builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+    }
+
+    private void SetAuditablePropertiesOnCreatedEntities()
+    {
+        IEnumerable<EntityEntry<AuditableEntity>> entitiesBeignCreated = ChangeTracker.Entries<AuditableEntity>()
+            .Where(entry => entry.State == EntityState.Added);
+
+        string createdBy = currentUserService.IsCurrentUserAuthenticated()
+            ? currentUserService.GetCurrentUserId()
+            : "system";
+
+        foreach (EntityEntry<AuditableEntity> entry in entitiesBeignCreated)
         {
-            var entitiesBeignUpdated = ChangeTracker.Entries<AuditableEntity>()
-                .Where(entry => entry.State == EntityState.Modified);
-
-            string updatedBy = currentUserService.IsCurrentUserAuthenticated()
-                ? currentUserService.GetCurrentUserId()
-                : "system";
-
-            foreach (var entry in entitiesBeignUpdated)
-            {
-                entry.Entity.UpdatedAtUtc = dateTimeProvider.UtcNow;
-                entry.Entity.UpdatedBy = updatedBy;
-            }
+            entry.Entity.CreatedAtUtc = dateTimeProvider.UtcNow;
+            entry.Entity.CreatedBy = createdBy;
         }
+    }
 
-        public async Task BeginTransactionAsync(CancellationToken cancellationToken)
+    private void SetAuditablePropertiesOnUpdatedEntities()
+    {
+        IEnumerable<EntityEntry<AuditableEntity>> entitiesBeignUpdated = ChangeTracker.Entries<AuditableEntity>()
+            .Where(entry => entry.State == EntityState.Modified);
+
+        string updatedBy = currentUserService.IsCurrentUserAuthenticated()
+            ? currentUserService.GetCurrentUserId()
+            : "system";
+
+        foreach (EntityEntry<AuditableEntity> entry in entitiesBeignUpdated)
         {
-            if (Database.CurrentTransaction is not null)
-            {
-                throw new InvalidOperationException("A transaction is already in progress.");
-            }
-
-            await Database.BeginTransactionAsync(cancellationToken);
-        }
-
-        public async Task CommitTransactionAsync(CancellationToken cancellationToken)
-        {
-            if (Database.CurrentTransaction is null)
-            {
-                throw new InvalidOperationException("No transaction is in progress to commit.");
-            }
-
-            await Database.CurrentTransaction.CommitAsync(cancellationToken);
-        }
-
-        public async Task RollbackTransactionAsync(CancellationToken cancellationToken)
-        {
-            if (Database.CurrentTransaction is null)
-            {
-                throw new InvalidOperationException("No transaction is in progress to roll back.");
-            }
-
-            await Database.CurrentTransaction.RollbackAsync(cancellationToken);
+            entry.Entity.UpdatedAtUtc = dateTimeProvider.UtcNow;
+            entry.Entity.UpdatedBy = updatedBy;
         }
     }
 }

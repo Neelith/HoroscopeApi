@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Hermes.Results;
 using HoroscopeApi.Application.Infrastructure.AI;
 using HoroscopeApi.Domain.AI;
 using Microsoft.Extensions.Logging;
@@ -13,9 +12,9 @@ namespace HoroscopeApi.Infrastructure.AI;
 public sealed class HuggingFaceClient : IHuggingFaceClient
 {
     private readonly HttpClient _httpClient;
-    private readonly HuggingFaceSettings _settings;
-    private readonly IHoroscopePromptBuilder _promptBuilder;
     private readonly ILogger<HuggingFaceClient> _logger;
+    private readonly IHoroscopePromptBuilder _promptBuilder;
+    private readonly HuggingFaceSettings _settings;
 
     public HuggingFaceClient(
         HttpClient httpClient,
@@ -33,7 +32,7 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
         GenerateHoroscopeRequest request,
         CancellationToken cancellationToken = default)
     {
-        var messages = _promptBuilder.BuildMessage(request.Date, request.SignInfo);
+        List<ChatMessage> messages = _promptBuilder.BuildMessage(request.Date, request.SignInfo);
         return await GenerateWithMessages(messages, cancellationToken);
     }
 
@@ -45,21 +44,18 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
         {
             var apiRequest = new
             {
-                messages = messages,
+                messages,
                 temperature = _settings.Temperature,
                 model = _settings.Model,
                 stream = false,
-                response_format = new
-                {
-                    type = "json_object"
-                }
+                response_format = new { type = "json_object" }
             };
 
-            var requestUri = $"{_settings.ApiUrl}/v1/chat/completions";
+            string requestUri = $"{_settings.ApiUrl}/v1/chat/completions";
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
 
-            var response = await _httpClient.PostAsJsonAsync(
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(
                 requestUri,
                 apiRequest,
                 CancellationToken.None);
@@ -69,23 +65,23 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
                 return MapHttpError(response.StatusCode);
             }
 
-            var apiResponse = await response.Content.ReadFromJsonAsync<ChatCompletionResponse>(
-                cancellationToken: CancellationToken.None);
+            ChatCompletionResponse? apiResponse = await response.Content.ReadFromJsonAsync<ChatCompletionResponse>(
+                CancellationToken.None);
 
             if (apiResponse?.Choices == null || apiResponse.Choices.Count == 0)
             {
                 return Result.Ko<HuggingFaceHoroscopeData>(AiErrors.InvalidResponse);
             }
 
-            var generatedText = apiResponse.Choices[0].Message.Content.Trim();
-            
+            string generatedText = apiResponse.Choices[0].Message.Content.Trim();
+
             // Try to extract JSON if wrapped in markdown code blocks (safety fallback)
             if (generatedText.StartsWith("```"))
             {
-                var lines = generatedText.Split('\n');
+                string[] lines = generatedText.Split('\n');
                 generatedText = string.Join('\n', lines.Skip(1).SkipLast(1));
             }
-            
+
             // Remove any "json" prefix after code block marker
             if (generatedText.StartsWith("json"))
             {
@@ -95,7 +91,7 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
             // Log the raw AI response for debugging
             _logger.LogDebug("Raw AI response: {Response}", generatedText);
 
-            var horoscopeData = JsonSerializer.Deserialize<HuggingFaceHoroscopeData>(
+            HuggingFaceHoroscopeData? horoscopeData = JsonSerializer.Deserialize<HuggingFaceHoroscopeData>(
                 generatedText,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
@@ -131,11 +127,11 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
     {
         return statusCode switch
         {
-            HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => 
+            HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden =>
                 Result.Ko<HuggingFaceHoroscopeData>(AiErrors.InvalidApiKey),
-            HttpStatusCode.TooManyRequests => 
+            HttpStatusCode.TooManyRequests =>
                 Result.Ko<HuggingFaceHoroscopeData>(AiErrors.RateLimitExceeded),
-            HttpStatusCode.ServiceUnavailable => 
+            HttpStatusCode.ServiceUnavailable =>
                 Result.Ko<HuggingFaceHoroscopeData>(AiErrors.ModelLoading),
             _ => Result.Ko<HuggingFaceHoroscopeData>(AiErrors.GenerationFailed)
         };
@@ -159,8 +155,10 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
     }
 
     private sealed record ChatCompletionResponse(
-        [property: JsonPropertyName("choices")] List<ChatChoice> Choices);
+        [property: JsonPropertyName("choices")]
+        List<ChatChoice> Choices);
 
     private sealed record ChatChoice(
-        [property: JsonPropertyName("message")] ChatMessage Message);
+        [property: JsonPropertyName("message")]
+        ChatMessage Message);
 }

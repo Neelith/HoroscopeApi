@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using HoroscopeApi.Application.Infrastructure.Caching;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using HoroscopeApi.Application.Infrastructure.Caching;
 
 namespace HoroscopeApi.Infrastructure.Caching;
 

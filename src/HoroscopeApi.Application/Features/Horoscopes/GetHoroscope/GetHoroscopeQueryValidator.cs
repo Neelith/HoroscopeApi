@@ -1,5 +1,3 @@
-using FluentValidation;
-using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.ZodiacSigns;
 
 namespace HoroscopeApi.Application.Features.Horoscopes.GetHoroscope;

@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using Hermes.Handlers;
-using Hermes.Responses;
 using HoroscopeApi.Application.Features.Shared;
 using HoroscopeApi.Application.Infrastructure.AI;
 using HoroscopeApi.Application.Infrastructure.Caching;
@@ -22,7 +19,7 @@ internal sealed class GetHoroscopeQueryHandler(
         GetHoroscopeQuery query,
         CancellationToken cancellationToken)
     {
-        if (!Enum.TryParse<ZodiacSign>(query.SignName, true, out var zodiacSign))
+        if (!Enum.TryParse<ZodiacSign>(query.SignName, true, out ZodiacSign zodiacSign))
         {
             return Result.Ko<Response<HoroscopeData>>(ZodiacSignErrors.InvalidName);
         }
@@ -32,7 +29,7 @@ internal sealed class GetHoroscopeQueryHandler(
         // Otherwise, use the period parameter (default to daily if not specified)
         HoroscopePeriod period;
         DateOnly date;
-        
+
         if (query.Date.HasValue)
         {
             // Date provided - use it and default to daily period
@@ -49,26 +46,26 @@ internal sealed class GetHoroscopeQueryHandler(
         }
 
         // Try cache first
-        var cacheKey = $"horoscope:{zodiacSign}:{period}:{date:yyyy-MM-dd}";
-        var cachedData = await cache.GetAsync<HoroscopeData>(cacheKey, cancellationToken);
+        string cacheKey = $"horoscope:{zodiacSign}:{period}:{date:yyyy-MM-dd}";
+        HoroscopeData? cachedData = await cache.GetAsync<HoroscopeData>(cacheKey, cancellationToken);
         if (cachedData is not null)
         {
             return Result.Ok(Response<HoroscopeData>.Create(cachedData));
         }
 
-        var repositoryQuery = new GetHoroscopeBySignAndPeriodRepositoryQuery(
+        GetHoroscopeBySignAndPeriodRepositoryQuery repositoryQuery = new(
             zodiacSign,
             period,
             date);
-        
-        var horoscope = await horoscopeRepository.GetBySignAndPeriodAsync(
+
+        Horoscope? horoscope = await horoscopeRepository.GetBySignAndPeriodAsync(
             repositoryQuery,
             cancellationToken);
 
         if (horoscope is null)
         {
             // Generate horoscope for the requested zodiac sign using AI
-            var generationResult = await GenerateHoroscopeByPeriod(
+            Result<Horoscope> generationResult = await GenerateHoroscopeByPeriod(
                 zodiacSign,
                 period,
                 date,
@@ -80,28 +77,28 @@ internal sealed class GetHoroscopeQueryHandler(
             }
 
             horoscope = generationResult.Value!;
-            
+
             // Save the generated horoscope to the database
             await horoscopeRepository.AddAsync(horoscope, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
-            
+
             // Reload to populate ZodiacSignInfo navigation property
             horoscope = await horoscopeRepository.GetBySignAndPeriodAsync(
                 repositoryQuery,
                 cancellationToken);
-            
+
             if (horoscope is null)
             {
                 return Result.Ko<Response<HoroscopeData>>(HoroscopeErrors.NotFound);
             }
         }
 
-        var data = HoroscopeData.ToHoroscopeData(horoscope);
-        
+        HoroscopeData data = HoroscopeData.ToHoroscopeData(horoscope);
+
         // Cache the result
         await cache.SetAsync(cacheKey, data, cancellationToken: cancellationToken);
-        
-        var response = Response<HoroscopeData>.Create(data);
+
+        Response<HoroscopeData> response = Response<HoroscopeData>.Create(data);
         return Result.Ok(response);
     }
 
@@ -113,10 +110,14 @@ internal sealed class GetHoroscopeQueryHandler(
     {
         return period switch
         {
-            HoroscopePeriod.Daily => await horoscopeGeneratorService.GenerateDailyHoroscopeAsync(sign, date, cancellationToken),
-            HoroscopePeriod.Weekly => await horoscopeGeneratorService.GenerateWeeklyHoroscopeAsync(sign, date, cancellationToken),
-            HoroscopePeriod.Monthly => await horoscopeGeneratorService.GenerateMonthlyHoroscopeAsync(sign, date, cancellationToken),
-            HoroscopePeriod.Yearly => await horoscopeGeneratorService.GenerateYearlyHoroscopeAsync(sign, date.Year, cancellationToken),
+            HoroscopePeriod.Daily => await horoscopeGeneratorService.GenerateDailyHoroscopeAsync(sign, date,
+                cancellationToken),
+            HoroscopePeriod.Weekly => await horoscopeGeneratorService.GenerateWeeklyHoroscopeAsync(sign, date,
+                cancellationToken),
+            HoroscopePeriod.Monthly => await horoscopeGeneratorService.GenerateMonthlyHoroscopeAsync(sign, date,
+                cancellationToken),
+            HoroscopePeriod.Yearly => await horoscopeGeneratorService.GenerateYearlyHoroscopeAsync(sign, date.Year,
+                cancellationToken),
             _ => throw new ArgumentOutOfRangeException(nameof(period), period, "Invalid horoscope period")
         };
     }

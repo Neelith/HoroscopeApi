@@ -25,15 +25,16 @@ internal static class DependencyInjection
 
         //Get the database connection string
         string dbConnectionString = configuration.GetConnectionString("HoroscopeApiDb")
-            ?? throw new ApplicationException("Connection string 'HoroscopeApiDb' not found.");
+                                    ?? throw new ApplicationException("Connection string 'HoroscopeApiDb' not found.");
 
         //Add the redis settings to the container and get an istance of it
         RedisSettings? redisSettings = services.AddSettings<RedisSettings>(configuration, startupLogger)
-            ?? throw new ApplicationException("Configuration section 'RedisSettings' not found.");
+                                       ?? throw new ApplicationException(
+                                           "Configuration section 'RedisSettings' not found.");
 
         //Add the jwt settings to the container and get an istance of it
         JwtSettings jwtSettings = services.AddSettings<JwtSettings>(configuration, startupLogger)
-            ?? throw new ApplicationException("Configuration section 'JwtSettings' not found.");
+                                  ?? throw new ApplicationException("Configuration section 'JwtSettings' not found.");
 
         //Register services here
         services

@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using HoroscopeApi.Infrastructure.Caching;
+﻿using HoroscopeApi.Infrastructure.Caching;
 using HoroscopeApi.Infrastructure.Persistence;
 using HoroscopeApi.Infrastructure.Persistence.Repositories;
 using HoroscopeApi.Infrastructure.Time;
 using HoroscopeApi.Infrastructure.User;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace HoroscopeApi.Infrastructure;
 
@@ -17,13 +17,13 @@ public static class DependencyInjection
         RedisSettings? redisSettings = default)
     {
         //Register infrastructure services here
-        ArgumentNullException.ThrowIfNull(dbConnectionString, nameof(dbConnectionString));
+        ArgumentNullException.ThrowIfNull(dbConnectionString);
 
         services.AddTime()
-                .AddDbContext(dbConnectionString)
-                .AddRepositories()
-                .AddRedis(redisSettings, logger)
-                .AddCurrentUserService();
+            .AddDbContext(dbConnectionString)
+            .AddRepositories()
+            .AddRedis(redisSettings, logger)
+            .AddCurrentUserService();
 
         return services;
     }

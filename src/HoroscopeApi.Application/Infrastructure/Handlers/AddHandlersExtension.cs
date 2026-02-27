@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Reflection;
 using HoroscopeApi.Application.Infrastructure.Decorators;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HoroscopeApi.Application.Infrastructure.Handlers;
 
@@ -8,7 +9,7 @@ public static class AddHandlersExtension
     public static IServiceCollection AddHandlers(this IServiceCollection services)
     {
         //Register the query handlers
-        var assembly = typeof(DependencyInjection).Assembly;
+        Assembly assembly = typeof(DependencyInjection).Assembly;
 
         services.AddHandlers([assembly]);
 

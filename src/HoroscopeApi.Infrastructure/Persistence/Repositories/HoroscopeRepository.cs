@@ -1,7 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.Horoscopes.Repositories;
-using HoroscopeApi.Domain.ZodiacSigns;
+using Microsoft.EntityFrameworkCore;
 
 namespace HoroscopeApi.Infrastructure.Persistence.Repositories;
 
@@ -27,9 +26,9 @@ internal sealed class HoroscopeRepository(ApplicationDbContext context) : IHoros
             .Include(h => h.ZodiacSignInfo)
             .AsNoTracking()
             .Where(h => h.ZodiacSignInfo.Sign == query.Sign
-                && h.Period == query.Period
-                && h.Date >= query.StartDate
-                && h.Date <= query.EndDate)
+                        && h.Period == query.Period
+                        && h.Date >= query.StartDate
+                        && h.Date <= query.EndDate)
             .OrderBy(h => h.Date)
             .ToListAsync(cancellationToken);
     }

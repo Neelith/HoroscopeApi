@@ -1,5 +1,3 @@
-using FluentValidation;
-
 namespace HoroscopeApi.Application.Features.ZodiacSigns.GetZodiacSignByName;
 
 internal sealed class GetZodiacSignByNameQueryValidator : AbstractValidator<GetZodiacSignByNameQuery>

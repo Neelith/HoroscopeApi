@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using HoroscopeApi.WebApi.Infrastructure.Settings;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using HoroscopeApi.WebApi.Infrastructure.Settings;
 
 namespace HoroscopeApi.WebApi.Infrastructure.Setup.Extensions;
 
 public static class AddAuthenticationExtension
 {
-    public static IServiceCollection AddAuthenticationServices(this IServiceCollection services, JwtSettings? jwtSettings)
+    public static IServiceCollection AddAuthenticationServices(this IServiceCollection services,
+        JwtSettings? jwtSettings)
     {
         if (jwtSettings is null)
         {
@@ -14,21 +15,21 @@ public static class AddAuthenticationExtension
         }
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
-        {
-            options.RequireHttpsMetadata = false; // Set to true in production
-            options.Authority = jwtSettings.Authority;
-
-            options.TokenValidationParameters = new TokenValidationParameters
+            .AddJwtBearer(options =>
             {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtSettings.Issuer,
-                ValidAudience = jwtSettings.Audience
-            };
-        });
+                options.RequireHttpsMetadata = false; // Set to true in production
+                options.Authority = jwtSettings.Authority;
+
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtSettings.Issuer,
+                    ValidAudience = jwtSettings.Audience
+                };
+            });
 
         return services;
     }

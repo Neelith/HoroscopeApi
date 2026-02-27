@@ -1,26 +1,10 @@
-using HoroscopeApi.Shared.Domain;
-using Hermes.Results;
 using HoroscopeApi.Domain.Horoscopes;
+using HoroscopeApi.Shared.Domain;
 
 namespace HoroscopeApi.Domain.ZodiacSigns;
 
 public sealed class ZodiacSignInfo : Entity
 {
-    public int Id { get; private set; }
-    public ZodiacSign Sign { get; private set; }
-    public string Name { get; private set; } = string.Empty;
-    public string Symbol { get; private set; } = string.Empty;
-    public int StartMonth { get; private set; }
-    public int StartDay { get; private set; }
-    public int EndMonth { get; private set; }
-    public int EndDay { get; private set; }
-    public Element Element { get; private set; }
-    public Quality Quality { get; private set; }
-    public Polarity Polarity { get; private set; }
-    public string RulingPlanet { get; private set; } = string.Empty;
-    public string Description { get; private set; } = string.Empty;
-    public ICollection<Horoscope> Horoscopes { get; private set; } = new List<Horoscope>();
-
     //EF constructor - required for entity materialization
     private ZodiacSignInfo() { }
 
@@ -52,6 +36,21 @@ public sealed class ZodiacSignInfo : Entity
         Description = description;
     }
 
+    public int Id { get; private set; }
+    public ZodiacSign Sign { get; private set; }
+    public string Name { get; private set; } = string.Empty;
+    public string Symbol { get; private set; } = string.Empty;
+    public int StartMonth { get; }
+    public int StartDay { get; }
+    public int EndMonth { get; }
+    public int EndDay { get; }
+    public Element Element { get; private set; }
+    public Quality Quality { get; private set; }
+    public Polarity Polarity { get; private set; }
+    public string RulingPlanet { get; private set; } = string.Empty;
+    public string Description { get; private set; } = string.Empty;
+    public ICollection<Horoscope> Horoscopes { get; private set; } = new List<Horoscope>();
+
     public static Result<ZodiacSignInfo> Create(
         ZodiacSign sign,
         string name,
@@ -81,7 +80,7 @@ public sealed class ZodiacSignInfo : Entity
             return Result.Ko<ZodiacSignInfo>(ZodiacSignErrors.InvalidDateRange);
         }
 
-        var zodiacSignInfo = new ZodiacSignInfo(
+        ZodiacSignInfo zodiacSignInfo = new(
             sign,
             name,
             symbol,
@@ -103,7 +102,7 @@ public sealed class ZodiacSignInfo : Entity
         // Handle special case: Capricorn spans year boundary (Dec 22 - Jan 19)
         if (StartMonth > EndMonth)
         {
-            return (month == StartMonth && day >= StartDay) || 
+            return (month == StartMonth && day >= StartDay) ||
                    (month == EndMonth && day <= EndDay);
         }
 

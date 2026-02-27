@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
+using HoroscopeApi.Application.Infrastructure.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using HoroscopeApi.Application.Infrastructure.User;
 
 namespace HoroscopeApi.Infrastructure.User;
 
@@ -12,7 +12,7 @@ internal class CurrentUserService(
 {
     public string GetCurrentUserId()
     {
-        var user = httpContextAccessor.HttpContext?.User;
+        ClaimsPrincipal? user = httpContextAccessor.HttpContext?.User;
 
         if (user is not { Identity.IsAuthenticated: true })
         {

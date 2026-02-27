@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using HoroscopeApi.Shared.Domain;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using HoroscopeApi.Shared.Domain;
 
 namespace HoroscopeApi.Infrastructure.Persistence.Configurations;
 
@@ -10,7 +10,7 @@ internal static class AuditableEntityExtensions
         where TEntity : AuditableEntity
     {
         builder.Property(e => e.CreatedBy)
-            .IsRequired(true)
+            .IsRequired()
             .HasDefaultValue(string.Empty);
 
         builder.Property(e => e.CreatedAtUtc)

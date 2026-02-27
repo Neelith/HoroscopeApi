@@ -1,6 +1,6 @@
-using Microsoft.Extensions.DependencyInjection;
 using HoroscopeApi.Domain.Horoscopes.Repositories;
 using HoroscopeApi.Domain.ZodiacSigns.Repositories;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HoroscopeApi.Infrastructure.Persistence.Repositories;
 

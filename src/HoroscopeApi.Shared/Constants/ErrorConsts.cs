@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace HoroscopeApi.Shared.Constants;
+﻿namespace HoroscopeApi.Shared.Constants;
 
 public static class ErrorConsts
 {

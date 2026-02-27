@@ -1,4 +1,5 @@
 using HoroscopeApi.Domain.Horoscopes;
+using HoroscopeApi.Domain.ZodiacSigns;
 
 namespace HoroscopeApi.Application.Features.Shared;
 
@@ -13,11 +14,11 @@ public sealed record HoroscopeData
     public required List<string> LuckyColors { get; init; }
     public required int MoodScore { get; init; }
     public required List<string> Keywords { get; init; }
-    
+
     public static HoroscopeData ToHoroscopeData(Horoscope horoscope)
     {
-        var signInfo = horoscope.ZodiacSignInfo;
-        
+        ZodiacSignInfo signInfo = horoscope.ZodiacSignInfo;
+
         return new HoroscopeData
         {
             Sign = horoscope.ZodiacSignInfo.Sign.ToString().ToLowerInvariant(),
@@ -29,7 +30,9 @@ public sealed record HoroscopeData
                 Quality = signInfo.Quality.ToString(),
                 Polarity = signInfo.Polarity.ToString(),
                 RulingPlanet = signInfo.RulingPlanet,
-                DateRange = GetDateRangeString(signInfo.StartMonth, signInfo.StartDay, signInfo.EndMonth, signInfo.EndDay),
+                DateRange =
+                    GetDateRangeString(signInfo.StartMonth, signInfo.StartDay, signInfo.EndMonth,
+                        signInfo.EndDay),
                 Description = signInfo.Description
             },
             Period = horoscope.Period.ToString().ToLowerInvariant(),
@@ -47,11 +50,11 @@ public sealed record HoroscopeData
             Keywords = horoscope.Keywords
         };
     }
-    
+
     private static string GetDateRangeString(int startMonth, int startDay, int endMonth, int endDay)
     {
-        var startMonthName = new DateOnly(2000, startMonth, 1).ToString("MMMM");
-        var endMonthName = new DateOnly(2000, endMonth, 1).ToString("MMMM");
+        string startMonthName = new DateOnly(2000, startMonth, 1).ToString("MMMM");
+        string endMonthName = new DateOnly(2000, endMonth, 1).ToString("MMMM");
         return $"{startMonthName} {startDay} - {endMonthName} {endDay}";
     }
 }

@@ -1,5 +1,4 @@
 using HoroscopeApi.Domain.Horoscopes;
-using HoroscopeApi.Domain.ZodiacSigns;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

@@ -1,4 +1,5 @@
 ﻿using Serilog;
+using Serilog.Core;
 using Serilog.Extensions.Logging;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
@@ -25,7 +26,7 @@ public static class AddLoggingExtension
 
     private static ILogger CreateStartupLogger(IConfiguration configuration)
     {
-        var serilogLogger = new LoggerConfiguration()
+        Logger serilogLogger = new LoggerConfiguration()
             .ReadFrom.Configuration(configuration)
             .CreateLogger();
 

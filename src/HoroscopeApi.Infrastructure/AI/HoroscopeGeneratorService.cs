@@ -1,17 +1,16 @@
-using Hermes.Results;
 using HoroscopeApi.Application.Infrastructure.AI;
+using HoroscopeApi.Domain.AI;
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.ZodiacSigns;
 using HoroscopeApi.Domain.ZodiacSigns.Repositories;
-using HoroscopeApi.Domain.AI;
 
 namespace HoroscopeApi.Infrastructure.AI;
 
 public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
 {
     private readonly IHuggingFaceClient _huggingFaceClient;
-    private readonly IZodiacSignRepository _zodiacSignRepository;
     private readonly IHoroscopePromptBuilder _promptBuilder;
+    private readonly IZodiacSignRepository _zodiacSignRepository;
 
     public HoroscopeGeneratorService(
         IHuggingFaceClient huggingFaceClient,
@@ -32,8 +31,8 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
             sign,
             date,
             HoroscopePeriod.Daily,
-            isYearly: false,
-            year: null,
+            false,
+            null,
             cancellationToken);
     }
 
@@ -46,8 +45,8 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
             sign,
             date,
             HoroscopePeriod.Weekly,
-            isYearly: false,
-            year: null,
+            false,
+            null,
             cancellationToken);
     }
 
@@ -60,8 +59,8 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
             sign,
             date,
             HoroscopePeriod.Monthly,
-            isYearly: false,
-            year: null,
+            false,
+            null,
             cancellationToken);
     }
 
@@ -70,13 +69,13 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
         int year,
         CancellationToken cancellationToken = default)
     {
-        var date = new DateOnly(year, 1, 1);
+        DateOnly date = new(year, 1, 1);
         return await GenerateHoroscopeAsync(
             sign,
             date,
             HoroscopePeriod.Yearly,
-            isYearly: true,
-            year: year,
+            true,
+            year,
             cancellationToken);
     }
 
@@ -89,9 +88,9 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
         CancellationToken cancellationToken)
     {
         // Fetch zodiac sign info from database
-        var zodiacSignQuery = new GetZodiacSignBySignRepositoryQuery(sign);
-        var zodiacSignInfo = await _zodiacSignRepository.GetBySignAsync(zodiacSignQuery, cancellationToken);
-        
+        GetZodiacSignBySignRepositoryQuery zodiacSignQuery = new(sign);
+        ZodiacSignInfo? zodiacSignInfo = await _zodiacSignRepository.GetBySignAsync(zodiacSignQuery, cancellationToken);
+
         if (zodiacSignInfo == null)
         {
             return Result.Ko<Horoscope>(ZodiacSignErrors.NotFound(sign));
@@ -113,16 +112,16 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
         }
         else
         {
-            var request = new GenerateHoroscopeRequest(date, zodiacSignInfo);
+            GenerateHoroscopeRequest request = new(date, zodiacSignInfo);
             aiResult = await _huggingFaceClient.GenerateHoroscopeAsync(request, cancellationToken);
         }
-        
+
         if (!aiResult.IsSuccess)
         {
             return Result.Ko<Horoscope>(aiResult.Errors);
         }
 
-        var horoscopeData = aiResult.Value!;
+        HuggingFaceHoroscopeData horoscopeData = aiResult.Value!;
 
         // Validate the sign matches
         if (!horoscopeData.Sign.Equals(sign.ToString(), StringComparison.OrdinalIgnoreCase))
@@ -131,21 +130,21 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
         }
 
         // Generate lucky numbers deterministically
-        var luckyNumbers = LuckyNumberGenerator.Generate(sign, date).ToList();
+        List<int> luckyNumbers = LuckyNumberGenerator.Generate(sign, date).ToList();
 
         // Create the Horoscope entity
-        var horoscopeResult = Horoscope.Create(
-            zodiacSignId: zodiacSignInfo.Id,
-            period: period,
-            date: date,
-            generalPrediction: horoscopeData.General,
-            lovePrediction: horoscopeData.Love,
-            careerPrediction: horoscopeData.Career,
-            healthPrediction: horoscopeData.Health,
-            luckyNumbers: luckyNumbers,
-            luckyColors: horoscopeData.LuckyColors,
-            moodScore: horoscopeData.MoodScore,
-            keywords: horoscopeData.Keywords);
+        Result<Horoscope> horoscopeResult = Horoscope.Create(
+            zodiacSignInfo.Id,
+            period,
+            date,
+            horoscopeData.General,
+            horoscopeData.Love,
+            horoscopeData.Career,
+            horoscopeData.Health,
+            luckyNumbers,
+            horoscopeData.LuckyColors,
+            horoscopeData.MoodScore,
+            horoscopeData.Keywords);
 
         if (!horoscopeResult.IsSuccess)
         {
@@ -160,7 +159,7 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
         ZodiacSignInfo zodiacSignInfo,
         CancellationToken cancellationToken)
     {
-        var messages = _promptBuilder.BuildYearlyMessage(year, zodiacSignInfo);
+        List<ChatMessage> messages = _promptBuilder.BuildYearlyMessage(year, zodiacSignInfo);
         return await _huggingFaceClient.GenerateWithMessages(messages, cancellationToken);
     }
 
@@ -169,7 +168,7 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
         ZodiacSignInfo zodiacSignInfo,
         CancellationToken cancellationToken)
     {
-        var messages = _promptBuilder.BuildWeeklyMessage(date, zodiacSignInfo);
+        List<ChatMessage> messages = _promptBuilder.BuildWeeklyMessage(date, zodiacSignInfo);
         return await _huggingFaceClient.GenerateWithMessages(messages, cancellationToken);
     }
 
@@ -178,7 +177,7 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
         ZodiacSignInfo zodiacSignInfo,
         CancellationToken cancellationToken)
     {
-        var messages = _promptBuilder.BuildMonthlyMessage(date, zodiacSignInfo);
+        List<ChatMessage> messages = _promptBuilder.BuildMonthlyMessage(date, zodiacSignInfo);
         return await _huggingFaceClient.GenerateWithMessages(messages, cancellationToken);
     }
 }

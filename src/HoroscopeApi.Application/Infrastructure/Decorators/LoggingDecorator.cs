@@ -21,9 +21,9 @@ internal static class LoggingDecorator
             }
             else
             {
-                var errors = result.Errors.Count > 0
-                  ? string.Join(", ", result.Errors.Select(e => e.Message))
-                  : "Unknown error";
+                string errors = result.Errors.Count > 0
+                    ? string.Join(", ", result.Errors.Select(e => e.Message))
+                    : "Unknown error";
 
                 logger.LogError("Completed command {CommandName} with one or more errors. Errors: {Errors}",
                     typeof(TCommand).Name,
@@ -53,9 +53,9 @@ internal static class LoggingDecorator
             }
             else
             {
-                var errors = result.Errors.Count > 0
-                   ? string.Join(", ", result.Errors.Select(e => e.Message))
-                   : "Unknown error";
+                string errors = result.Errors.Count > 0
+                    ? string.Join(", ", result.Errors.Select(e => e.Message))
+                    : "Unknown error";
 
                 logger.LogError("Completed command {CommandName} with one or more errors. Errors: {Errors}",
                     typeof(TCommand).Name,
@@ -85,7 +85,7 @@ internal static class LoggingDecorator
             }
             else
             {
-                var errors = result.Errors.Count > 0
+                string errors = result.Errors.Count > 0
                     ? string.Join(", ", result.Errors.Select(e => e.Message))
                     : "Unknown error";
 

@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
+using HoroscopeApi.Application.Infrastructure.Caching;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
-using HoroscopeApi.Application.Infrastructure.Caching;
 
 namespace HoroscopeApi.Infrastructure.Caching;
 
@@ -20,7 +20,7 @@ internal class RedisCache(
 
         logger.LogDebug("Attempting to get value from cache for key: {Key}", key);
 
-        var value = await distributedCache.GetStringAsync(key, cancellationToken);
+        string? value = await distributedCache.GetStringAsync(key, cancellationToken);
 
         if (string.IsNullOrEmpty(value))
         {
@@ -33,7 +33,8 @@ internal class RedisCache(
         return JsonSerializer.Deserialize<T>(value);
     }
 
-    public async Task SetAsync<T>(string key, T value, TimeSpan? expirationTime = null, CancellationToken cancellationToken = default)
+    public async Task SetAsync<T>(string key, T value, TimeSpan? expirationTime = null,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(key))
         {
@@ -41,16 +42,17 @@ internal class RedisCache(
             throw new ArgumentNullException(nameof(key));
         }
 
-        var defaultExpiration = TimeSpan.FromMinutes(5);
+        TimeSpan defaultExpiration = TimeSpan.FromMinutes(5);
 
-        logger.LogDebug("Setting value in cache for key: {Key} with expiration: {Expiration}", key, expirationTime ?? defaultExpiration);
+        logger.LogDebug("Setting value in cache for key: {Key} with expiration: {Expiration}", key,
+            expirationTime ?? defaultExpiration);
 
-        var options = new DistributedCacheEntryOptions
+        DistributedCacheEntryOptions options = new()
         {
             AbsoluteExpirationRelativeToNow = expirationTime ?? defaultExpiration
         };
 
-        var json = JsonSerializer.Serialize(value);
+        string json = JsonSerializer.Serialize(value);
 
         await distributedCache.SetStringAsync(key, json, options, cancellationToken);
 

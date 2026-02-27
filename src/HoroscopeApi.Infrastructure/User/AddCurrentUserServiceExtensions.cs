@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using HoroscopeApi.Application.Infrastructure.User;
+﻿using HoroscopeApi.Application.Infrastructure.User;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HoroscopeApi.Infrastructure.User;
 

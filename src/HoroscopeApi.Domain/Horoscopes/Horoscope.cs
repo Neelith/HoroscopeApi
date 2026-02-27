@@ -1,25 +1,10 @@
 using HoroscopeApi.Domain.ZodiacSigns;
 using HoroscopeApi.Shared.Domain;
-using Hermes.Results;
 
 namespace HoroscopeApi.Domain.Horoscopes;
 
 public sealed class Horoscope : AuditableEntity
 {
-    public int Id { get; private set; }
-    public int ZodiacSignId { get; private set; }
-    public ZodiacSignInfo ZodiacSignInfo { get; private set; } = null!;
-    public HoroscopePeriod Period { get; private set; }
-    public DateOnly Date { get; private set; }
-    public string GeneralPrediction { get; private set; } = string.Empty;
-    public string? LovePrediction { get; private set; }
-    public string? CareerPrediction { get; private set; }
-    public string? HealthPrediction { get; private set; }
-    public List<int> LuckyNumbers { get; private set; } = new();
-    public List<string> LuckyColors { get; private set; } = new();
-    public int MoodScore { get; private set; }
-    public List<string> Keywords { get; private set; } = new();
-
     //EF constructor - required for entity materialization
     private Horoscope() { }
 
@@ -48,6 +33,20 @@ public sealed class Horoscope : AuditableEntity
         MoodScore = moodScore;
         Keywords = keywords;
     }
+
+    public int Id { get; private set; }
+    public int ZodiacSignId { get; private set; }
+    public ZodiacSignInfo ZodiacSignInfo { get; private set; } = null!;
+    public HoroscopePeriod Period { get; private set; }
+    public DateOnly Date { get; private set; }
+    public string GeneralPrediction { get; private set; } = string.Empty;
+    public string? LovePrediction { get; private set; }
+    public string? CareerPrediction { get; private set; }
+    public string? HealthPrediction { get; private set; }
+    public List<int> LuckyNumbers { get; private set; } = new();
+    public List<string> LuckyColors { get; private set; } = new();
+    public int MoodScore { get; private set; }
+    public List<string> Keywords { get; private set; } = new();
 
     public static Result<Horoscope> Create(
         int zodiacSignId,
@@ -92,7 +91,7 @@ public sealed class Horoscope : AuditableEntity
             return Result.Ko<Horoscope>(HoroscopeErrors.InvalidKeywords);
         }
 
-        var horoscope = new Horoscope(
+        Horoscope horoscope = new(
             zodiacSignId,
             period,
             date,

@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+﻿using HoroscopeApi.WebApi.Constants;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using HoroscopeApi.WebApi.Constants;
+using Microsoft.Extensions.Primitives;
 
 namespace HoroscopeApi.WebApi.Infrastructure.Setup.Middlewares;
 
@@ -14,14 +15,15 @@ internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> log
     {
         logger.LogError(exception, "Unhandled exception occurred");
 
-        var problemDetails = new ProblemDetails
+        ProblemDetails problemDetails = new()
         {
             Status = StatusCodes.Status500InternalServerError,
             Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.6.1",
             Title = "Server failure"
         };
 
-        string traceId = httpContext.Request.Headers.TryGetValue(Headers.Trace, out var traceHeaderValue) && !string.IsNullOrWhiteSpace(traceHeaderValue)
+        string traceId = httpContext.Request.Headers.TryGetValue(Headers.Trace, out StringValues traceHeaderValue) &&
+                         !string.IsNullOrWhiteSpace(traceHeaderValue)
             ? traceHeaderValue.ToString()
             : httpContext.TraceIdentifier;
 

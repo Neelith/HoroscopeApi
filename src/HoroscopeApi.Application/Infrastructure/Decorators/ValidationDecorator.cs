@@ -6,6 +6,26 @@ namespace HoroscopeApi.Application.Infrastructure.Decorators;
 
 internal static class ValidationDecorator
 {
+    private static async Task<ValidationFailure[]> ValidateAndCollectFailures<T>(
+        T request,
+        IEnumerable<IValidator<T>> validators,
+        CancellationToken cancellationToken)
+    {
+        ValidationContext<T> context = new(request);
+
+        ValidationResult[] validationResults = await Task.WhenAll(
+            validators.Select(v => v.ValidateAsync(context, cancellationToken)));
+
+        ValidationFailure[] failures =
+        [
+            .. validationResults
+                .SelectMany(r => r.Errors)
+                .Where(f => f != null)
+        ];
+
+        return failures;
+    }
+
     internal sealed class CommandBaseHandler<TCommand>(
         ICommandHandler<TCommand> inner,
         IEnumerable<IValidator<TCommand>> validators)
@@ -17,7 +37,7 @@ internal static class ValidationDecorator
 
             if (failures.Length != 0)
             {
-                var errors = failures.Select(f =>
+                Error[] errors = failures.Select(f =>
                     new Error(f.ErrorCode ?? "VALIDATION_ERROR", f.ErrorMessage)
                     {
                         Metadata = new Dictionary<string, string?>
@@ -46,7 +66,7 @@ internal static class ValidationDecorator
 
             if (failures.Length != 0)
             {
-                var errors = failures.Select(f =>
+                Error[] errors = failures.Select(f =>
                     new Error(f.ErrorCode ?? "VALIDATION_ERROR", f.ErrorMessage)
                     {
                         Metadata = new Dictionary<string, string?>
@@ -75,7 +95,7 @@ internal static class ValidationDecorator
 
             if (failures.Length != 0)
             {
-                var errors = failures.Select(f =>
+                Error[] errors = failures.Select(f =>
                     new Error(f.ErrorCode ?? "VALIDATION_ERROR", f.ErrorMessage)
                     {
                         Metadata = new Dictionary<string, string?>
@@ -89,22 +109,5 @@ internal static class ValidationDecorator
 
             return await inner.Handle(query, cancellationToken);
         }
-    }
-
-    private static async Task<ValidationFailure[]> ValidateAndCollectFailures<T>(
-        T request,
-        IEnumerable<IValidator<T>> validators,
-        CancellationToken cancellationToken)
-    {
-        var context = new ValidationContext<T>(request);
-
-        ValidationResult[] validationResults = await Task.WhenAll(
-            validators.Select(v => v.ValidateAsync(context, cancellationToken)));
-
-        ValidationFailure[] failures = [.. validationResults
-            .SelectMany(r => r.Errors)
-            .Where(f => f != null)];
-
-        return failures;
     }
 }

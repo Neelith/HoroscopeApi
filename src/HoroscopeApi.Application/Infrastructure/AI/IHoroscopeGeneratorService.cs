@@ -1,4 +1,3 @@
-using Hermes.Results;
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.ZodiacSigns;
 
@@ -10,17 +9,17 @@ public interface IHoroscopeGeneratorService
         ZodiacSign sign,
         DateOnly date,
         CancellationToken cancellationToken = default);
-    
+
     Task<Result<Horoscope>> GenerateWeeklyHoroscopeAsync(
         ZodiacSign sign,
         DateOnly date,
         CancellationToken cancellationToken = default);
-    
+
     Task<Result<Horoscope>> GenerateMonthlyHoroscopeAsync(
         ZodiacSign sign,
         DateOnly date,
         CancellationToken cancellationToken = default);
-    
+
     Task<Result<Horoscope>> GenerateYearlyHoroscopeAsync(
         ZodiacSign sign,
         int year,
