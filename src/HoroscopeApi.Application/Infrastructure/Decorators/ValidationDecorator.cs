@@ -1,5 +1,5 @@
 using FluentValidation.Results;
-using HoroscopeApi.Shared.Constants;
+using HoroscopeApi.Domain.Constants;
 using ValidationResult = FluentValidation.Results.ValidationResult;
 
 namespace HoroscopeApi.Application.Infrastructure.Decorators;

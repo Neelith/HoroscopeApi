@@ -1,5 +1,5 @@
-using HoroscopeApi.Application.Infrastructure.AI;
-using HoroscopeApi.Domain.AI;
+using HoroscopeApi.Application.Services.AI;
+using HoroscopeApi.Domain.Constants;
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.ZodiacSigns;
 using HoroscopeApi.Domain.ZodiacSigns.Repositories;
@@ -146,12 +146,9 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
             horoscopeData.MoodScore,
             horoscopeData.Keywords);
 
-        if (!horoscopeResult.IsSuccess)
-        {
-            return Result.Ko<Horoscope>(horoscopeResult.Errors);
-        }
-
-        return Result.Ok(horoscopeResult.Value!);
+        return horoscopeResult.IsSuccess
+            ? Result.Ok(horoscopeResult.Value!)
+            : Result.Ko<Horoscope>(horoscopeResult.Errors);
     }
 
     private async Task<Result<HuggingFaceHoroscopeData>> GenerateWithYearlyPrompt(

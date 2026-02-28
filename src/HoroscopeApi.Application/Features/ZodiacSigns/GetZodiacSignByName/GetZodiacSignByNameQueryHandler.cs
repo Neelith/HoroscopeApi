@@ -1,4 +1,4 @@
-using HoroscopeApi.Application.Features.Shared;
+using HoroscopeApi.Application.Models;
 using HoroscopeApi.Domain.ZodiacSigns;
 using HoroscopeApi.Domain.ZodiacSigns.Repositories;
 
@@ -11,7 +11,7 @@ internal sealed class GetZodiacSignByNameQueryHandler(IZodiacSignRepository repo
         GetZodiacSignByNameQuery query,
         CancellationToken cancellationToken)
     {
-        if (!Enum.TryParse<ZodiacSign>(query.SignName, true, out ZodiacSign zodiacSign))
+        if (!Enum.TryParse(query.SignName, true, out ZodiacSign zodiacSign))
         {
             return Result.Ko<Response<ZodiacSignInfoData>>(ZodiacSignErrors.InvalidName);
         }

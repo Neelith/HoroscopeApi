@@ -1,10 +1,10 @@
 using System.Reflection;
 using HoroscopeApi.Application.Infrastructure.Persistance;
 using HoroscopeApi.Application.Infrastructure.User;
+using HoroscopeApi.Application.Services.Time;
 using HoroscopeApi.Domain.Horoscopes;
+using HoroscopeApi.Domain.Shared;
 using HoroscopeApi.Domain.ZodiacSigns;
-using HoroscopeApi.Shared.Domain;
-using HoroscopeApi.Shared.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 

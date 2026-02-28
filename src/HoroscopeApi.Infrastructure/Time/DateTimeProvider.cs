@@ -1,4 +1,4 @@
-﻿using HoroscopeApi.Shared.Time;
+﻿using HoroscopeApi.Application.Services.Time;
 
 namespace HoroscopeApi.Infrastructure.Time;
 

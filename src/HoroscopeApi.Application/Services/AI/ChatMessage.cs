@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace HoroscopeApi.Application.Infrastructure.AI;
+namespace HoroscopeApi.Application.Services.AI;
 
 public sealed record ChatMessage(
     [property: JsonPropertyName("role")] string Role,

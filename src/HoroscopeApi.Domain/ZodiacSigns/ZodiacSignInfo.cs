@@ -1,5 +1,5 @@
 using HoroscopeApi.Domain.Horoscopes;
-using HoroscopeApi.Shared.Domain;
+using HoroscopeApi.Domain.Shared;
 
 namespace HoroscopeApi.Domain.ZodiacSigns;
 

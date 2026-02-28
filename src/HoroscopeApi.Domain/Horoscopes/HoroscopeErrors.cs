@@ -1,4 +1,4 @@
-using HoroscopeApi.Shared.Constants;
+using HoroscopeApi.Domain.Constants;
 
 namespace HoroscopeApi.Domain.Horoscopes;
 

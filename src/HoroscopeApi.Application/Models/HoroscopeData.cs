@@ -1,7 +1,7 @@
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.ZodiacSigns;
 
-namespace HoroscopeApi.Application.Features.Shared;
+namespace HoroscopeApi.Application.Models;
 
 public sealed record HoroscopeData
 {

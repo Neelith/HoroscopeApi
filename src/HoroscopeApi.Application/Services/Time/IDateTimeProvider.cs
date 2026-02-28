@@ -1,4 +1,4 @@
-﻿namespace HoroscopeApi.Shared.Time;
+﻿namespace HoroscopeApi.Application.Services.Time;
 
 public interface IDateTimeProvider
 {

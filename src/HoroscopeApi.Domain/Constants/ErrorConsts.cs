@@ -1,4 +1,4 @@
-﻿namespace HoroscopeApi.Shared.Constants;
+﻿namespace HoroscopeApi.Domain.Constants;
 
 public static class ErrorConsts
 {

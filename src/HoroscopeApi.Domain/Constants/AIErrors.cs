@@ -1,6 +1,4 @@
-using HoroscopeApi.Shared.Constants;
-
-namespace HoroscopeApi.Domain.AI;
+namespace HoroscopeApi.Domain.Constants;
 
 public static class AiErrors
 {

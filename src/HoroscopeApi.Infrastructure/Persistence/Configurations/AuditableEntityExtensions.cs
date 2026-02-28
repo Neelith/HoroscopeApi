@@ -1,4 +1,4 @@
-﻿using HoroscopeApi.Shared.Domain;
+﻿using HoroscopeApi.Domain.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

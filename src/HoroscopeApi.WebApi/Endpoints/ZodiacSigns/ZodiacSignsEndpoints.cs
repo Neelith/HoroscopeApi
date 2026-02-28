@@ -1,7 +1,7 @@
 using Hermes.Responses;
-using HoroscopeApi.Application.Features.Shared;
 using HoroscopeApi.Application.Features.ZodiacSigns.GetAllZodiacSigns;
 using HoroscopeApi.Application.Features.ZodiacSigns.GetZodiacSignByName;
+using HoroscopeApi.Application.Models;
 using HoroscopeApi.WebApi.Constants;
 using HoroscopeApi.WebApi.Infrastructure.Extensions;
 

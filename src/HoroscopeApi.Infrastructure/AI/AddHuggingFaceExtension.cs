@@ -1,4 +1,4 @@
-using HoroscopeApi.Application.Infrastructure.AI;
+using HoroscopeApi.Application.Services.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

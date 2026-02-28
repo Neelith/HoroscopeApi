@@ -1,6 +1,6 @@
 using Hermes.Responses;
 using HoroscopeApi.Application.Features.Horoscopes.GetHoroscope;
-using HoroscopeApi.Application.Features.Shared;
+using HoroscopeApi.Application.Models;
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.WebApi.Constants;
 using HoroscopeApi.WebApi.Infrastructure.Extensions;

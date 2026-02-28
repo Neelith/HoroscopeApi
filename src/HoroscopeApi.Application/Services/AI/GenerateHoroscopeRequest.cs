@@ -1,6 +1,6 @@
 using HoroscopeApi.Domain.ZodiacSigns;
 
-namespace HoroscopeApi.Application.Infrastructure.AI;
+namespace HoroscopeApi.Application.Services.AI;
 
 public sealed record GenerateHoroscopeRequest(
     DateOnly Date,

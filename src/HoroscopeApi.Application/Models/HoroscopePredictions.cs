@@ -1,4 +1,4 @@
-namespace HoroscopeApi.Application.Features.Shared;
+namespace HoroscopeApi.Application.Models;
 
 public sealed record HoroscopePredictions
 {

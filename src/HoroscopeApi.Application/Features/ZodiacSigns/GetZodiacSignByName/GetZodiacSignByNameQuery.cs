@@ -1,4 +1,4 @@
-using HoroscopeApi.Application.Features.Shared;
+using HoroscopeApi.Application.Models;
 
 namespace HoroscopeApi.Application.Features.ZodiacSigns.GetZodiacSignByName;
 

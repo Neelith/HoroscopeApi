@@ -2,8 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using HoroscopeApi.Application.Infrastructure.AI;
-using HoroscopeApi.Domain.AI;
+using HoroscopeApi.Application.Services.AI;
+using HoroscopeApi.Domain.Constants;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

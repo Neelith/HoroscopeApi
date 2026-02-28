@@ -1,4 +1,4 @@
-namespace HoroscopeApi.Application.Infrastructure.AI;
+namespace HoroscopeApi.Application.Services.AI;
 
 public interface IHuggingFaceClient
 {

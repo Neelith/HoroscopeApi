@@ -1,4 +1,4 @@
-﻿using HoroscopeApi.Shared.Time;
+﻿using HoroscopeApi.Application.Services.Time;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HoroscopeApi.Infrastructure.Time;

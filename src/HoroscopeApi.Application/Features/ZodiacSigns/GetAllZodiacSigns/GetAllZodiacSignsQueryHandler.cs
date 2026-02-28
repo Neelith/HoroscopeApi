@@ -1,4 +1,4 @@
-using HoroscopeApi.Application.Features.Shared;
+using HoroscopeApi.Application.Models;
 using HoroscopeApi.Domain.ZodiacSigns;
 using HoroscopeApi.Domain.ZodiacSigns.Repositories;
 

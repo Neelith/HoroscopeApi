@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace HoroscopeApi.Shared.Domain;
+namespace HoroscopeApi.Domain.Shared;
 
 public abstract class Entity
 {

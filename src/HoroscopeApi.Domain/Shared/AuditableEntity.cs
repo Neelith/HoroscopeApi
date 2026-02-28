@@ -1,4 +1,4 @@
-﻿namespace HoroscopeApi.Shared.Domain;
+﻿namespace HoroscopeApi.Domain.Shared;
 
 public class AuditableEntity : Entity
 {

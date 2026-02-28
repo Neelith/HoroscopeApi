@@ -1,7 +1,7 @@
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.ZodiacSigns;
 
-namespace HoroscopeApi.Application.Infrastructure.AI;
+namespace HoroscopeApi.Application.Services.AI;
 
 public interface IHoroscopeGeneratorService
 {
