@@ -1,3 +1,4 @@
+using HoroscopeApi.Domain.ApiKeys.Repositories;
 using HoroscopeApi.Domain.Horoscopes.Repositories;
 using HoroscopeApi.Domain.ZodiacSigns.Repositories;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,7 @@ internal static class AddRepositoriesExtension
     {
         services.AddScoped<IZodiacSignRepository, ZodiacSignRepository>();
         services.AddScoped<IHoroscopeRepository, HoroscopeRepository>();
+        services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
 
         return services;
     }

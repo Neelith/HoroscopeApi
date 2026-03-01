@@ -10,7 +10,7 @@ http:
   url: "{{baseUrl}}/horoscopes/:signName"
   headers:
     - name: x-api-key
-      value: your-secure-api-key
+      value: 8a844ad14d914648c241abdfb1b7893a429420ae05f63a72b02354a2e4fc38d50346652b17b340495efed094295a1becbc0dd6de3cc8ec6f
   params:
     - name: signName
       value: capricorn

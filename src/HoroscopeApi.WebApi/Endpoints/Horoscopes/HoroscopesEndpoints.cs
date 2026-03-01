@@ -12,6 +12,7 @@ public sealed class HoroscopesEndpoints : IEndpoints
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         RouteGroupBuilder group = app.MapGroup("horoscopes")
+            .RequireAuthorization(AuthorizationPolicies.ApiKey)
             .WithTags(Tags.Horoscopes)
             .WithDescription("Horoscope reading endpoints");
 

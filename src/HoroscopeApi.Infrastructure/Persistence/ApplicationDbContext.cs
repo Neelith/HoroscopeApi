@@ -2,6 +2,7 @@ using System.Reflection;
 using HoroscopeApi.Application.Infrastructure.Persistance;
 using HoroscopeApi.Application.Infrastructure.User;
 using HoroscopeApi.Application.Services.Time;
+using HoroscopeApi.Domain.ApiKeys;
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.Shared;
 using HoroscopeApi.Domain.ZodiacSigns;
@@ -18,6 +19,8 @@ internal class ApplicationDbContext(
 {
     public DbSet<ZodiacSignInfo> ZodiacSigns { get; set; }
     public DbSet<Horoscope> Horoscopes { get; set; }
+    public DbSet<Domain.ApiKeys.ApiKey> ApiKeys { get; set; }
+    public DbSet<ApiKeyScope> ApiKeyScopes { get; set; }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {

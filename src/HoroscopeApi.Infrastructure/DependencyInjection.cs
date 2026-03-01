@@ -1,4 +1,5 @@
-﻿using HoroscopeApi.Infrastructure.Caching;
+﻿using HoroscopeApi.Infrastructure.ApiKey;
+using HoroscopeApi.Infrastructure.Caching;
 using HoroscopeApi.Infrastructure.Persistence;
 using HoroscopeApi.Infrastructure.Persistence.Repositories;
 using HoroscopeApi.Infrastructure.Time;
@@ -23,7 +24,8 @@ public static class DependencyInjection
             .AddDbContext(dbConnectionString)
             .AddRepositories()
             .AddRedis(redisSettings, logger)
-            .AddCurrentUserService();
+            .AddCurrentUserService()
+            .AddApiKeyServices();
 
         return services;
     }
