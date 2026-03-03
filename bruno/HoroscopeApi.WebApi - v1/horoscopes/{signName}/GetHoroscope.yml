@@ -10,7 +10,7 @@ http:
   url: "{{baseUrl}}/horoscopes/:signName"
   headers:
     - name: x-api-key
-      value: 8a844ad14d914648c241abdfb1b7893a429420ae05f63a72b02354a2e4fc38d50346652b17b340495efed094295a1becbc0dd6de3cc8ec6f
+      value: "{{apiKey}}"
   params:
     - name: signName
       value: capricorn
@@ -23,7 +23,6 @@ http:
       value: ""
       type: query
       disabled: true
-  auth: inherit
 
 settings:
   encodeUrl: true

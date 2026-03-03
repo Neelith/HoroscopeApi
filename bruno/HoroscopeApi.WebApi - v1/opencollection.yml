@@ -15,6 +15,25 @@ config:
       bypassProxy: ""
 
 request:
+  auth:
+    type: oauth2
+    flow: resource_owner_password_credentials
+    accessTokenUrl: "{{accessTokenUrl}}"
+    credentials:
+      clientId: "{{clientId}}"
+      clientSecret: "{{clientSecret}}"
+      placement: body
+    resourceOwner:
+      username: "{{username}}"
+      password: "{{password}}"
+    scope: openid profile email
+    tokenConfig:
+      id: credentials
+      placement:
+        header: Bearer
+    settings:
+      autoFetchToken: true
+      autoRefreshToken: false
   variables:
     - name: baseUrl
       value: http://localhost:8080

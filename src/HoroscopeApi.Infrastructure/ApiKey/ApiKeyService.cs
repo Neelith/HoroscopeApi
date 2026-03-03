@@ -1,6 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
 using HoroscopeApi.Application.Services.ApiKey;
+using HoroscopeApi.Application.Services.Time;
+using HoroscopeApi.Domain.ApiKeys;
 using HoroscopeApi.Domain.ApiKeys.Repositories;
 using HoroscopeApi.WebApi.Infrastructure.Settings;
 using Microsoft.Extensions.Options;
@@ -9,7 +11,8 @@ namespace HoroscopeApi.Infrastructure.ApiKey;
 
 internal class ApiKeyService(
     IOptions<ApiKeySettings> apiKeySettingsOptions,
-    IApiKeyRepository apiKeyRepository) : IApiKeyService
+    IApiKeyRepository apiKeyRepository,
+    IDateTimeProvider dateTimeProvider) : IApiKeyService
 {
     private readonly ApiKeySettings _apiKeySettings = apiKeySettingsOptions.Value;
 
@@ -41,7 +44,11 @@ internal class ApiKeyService(
         {
             string keyHash = ComputeHash(apiKey, key.Salt);
 
-            if (keyHash.Equals(key.Hash, StringComparison.InvariantCulture))
+            if (
+                (key.Type == ApiKeyType.Permanent ||
+                 (key is { Type: ApiKeyType.Temporary, ExpiresAtUtc: not null } &&
+                  key.ExpiresAtUtc.Value >= dateTimeProvider.UtcNow)) &&
+                keyHash.Equals(key.Hash, StringComparison.InvariantCulture))
             {
                 return Result.Ok(new ApiKeyValidation(true));
             }
