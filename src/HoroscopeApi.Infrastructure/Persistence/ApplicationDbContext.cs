@@ -19,6 +19,7 @@ internal class ApplicationDbContext(
 {
     public DbSet<ZodiacSignInfo> ZodiacSigns { get; set; }
     public DbSet<Horoscope> Horoscopes { get; set; }
+    public DbSet<HoroscopePromptTemplate> HoroscopePromptTemplates { get; set; }
     public DbSet<Domain.ApiKeys.ApiKey> ApiKeys { get; set; }
     public DbSet<ApiKeyScope> ApiKeyScopes { get; set; }
 

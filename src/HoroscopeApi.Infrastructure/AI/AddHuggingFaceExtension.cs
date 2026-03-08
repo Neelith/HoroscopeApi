@@ -18,7 +18,7 @@ public static class AddHuggingFaceExtension
         services.AddHttpClient<IHuggingFaceClient, HuggingFaceClient>();
 
         // Register services
-        services.AddSingleton<IHoroscopePromptBuilder, HoroscopePromptBuilder>();
+        services.AddScoped<IHoroscopePromptBuilder, HoroscopePromptBuilder>();
         services.AddScoped<IHoroscopeGeneratorService, HoroscopeGeneratorService>();
 
         return services;

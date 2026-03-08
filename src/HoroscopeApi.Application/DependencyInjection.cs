@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using HoroscopeApi.Application.Features.Horoscopes.Shared;
 using HoroscopeApi.Application.Infrastructure.Handlers;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,6 +17,9 @@ public static class DependencyInjection
             .AddHandlers()
             .AddValidatorsFromAssembly(assembly)
             .AddDecorators();
+
+        // Register shared services
+        services.AddScoped<HoroscopeQueryService>();
 
         return services;
     }

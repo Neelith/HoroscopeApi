@@ -59,4 +59,18 @@ public static class HoroscopeErrors
     {
         Metadata = new Dictionary<string, string?> { { ErrorConsts.ErrorType, ErrorConsts.BadRequestCode } }
     };
+
+    public static Error InvalidPromptTemplate => new(
+        "Horoscope.InvalidPromptTemplate",
+        "Prompt template system prompt and user prompt template are required.")
+    {
+        Metadata = new Dictionary<string, string?> { { ErrorConsts.ErrorType, ErrorConsts.BadRequestCode } }
+    };
+
+    public static Error PromptTemplateNotFound => new(
+        "Horoscope.PromptTemplateNotFound",
+        "No prompt template found for the specified period.")
+    {
+        Metadata = new Dictionary<string, string?> { { ErrorConsts.ErrorType, ErrorConsts.NotFoundCode } }
+    };
 }

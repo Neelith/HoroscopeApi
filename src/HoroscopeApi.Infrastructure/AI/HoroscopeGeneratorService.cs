@@ -156,7 +156,7 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
         ZodiacSignInfo zodiacSignInfo,
         CancellationToken cancellationToken)
     {
-        List<ChatMessage> messages = _promptBuilder.BuildYearlyMessage(year, zodiacSignInfo);
+        List<ChatMessage> messages = await _promptBuilder.BuildYearlyMessageAsync(year, zodiacSignInfo, cancellationToken);
         return await _huggingFaceClient.GenerateWithMessages(messages, cancellationToken);
     }
 
@@ -165,7 +165,7 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
         ZodiacSignInfo zodiacSignInfo,
         CancellationToken cancellationToken)
     {
-        List<ChatMessage> messages = _promptBuilder.BuildWeeklyMessage(date, zodiacSignInfo);
+        List<ChatMessage> messages = await _promptBuilder.BuildWeeklyMessageAsync(date, zodiacSignInfo, cancellationToken);
         return await _huggingFaceClient.GenerateWithMessages(messages, cancellationToken);
     }
 
@@ -174,7 +174,7 @@ public sealed class HoroscopeGeneratorService : IHoroscopeGeneratorService
         ZodiacSignInfo zodiacSignInfo,
         CancellationToken cancellationToken)
     {
-        List<ChatMessage> messages = _promptBuilder.BuildMonthlyMessage(date, zodiacSignInfo);
+        List<ChatMessage> messages = await _promptBuilder.BuildMonthlyMessageAsync(date, zodiacSignInfo, cancellationToken);
         return await _huggingFaceClient.GenerateWithMessages(messages, cancellationToken);
     }
 }

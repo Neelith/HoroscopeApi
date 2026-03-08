@@ -11,6 +11,7 @@ internal static class AddRepositoriesExtension
     {
         services.AddScoped<IZodiacSignRepository, ZodiacSignRepository>();
         services.AddScoped<IHoroscopeRepository, HoroscopeRepository>();
+        services.AddScoped<IHoroscopePromptTemplateRepository, HoroscopePromptTemplateRepository>();
         services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
 
         return services;

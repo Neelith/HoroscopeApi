@@ -32,7 +32,7 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
         GenerateHoroscopeRequest request,
         CancellationToken cancellationToken = default)
     {
-        List<ChatMessage> messages = _promptBuilder.BuildMessage(request.Date, request.SignInfo);
+        List<ChatMessage> messages = await _promptBuilder.BuildMessageAsync(request.Date, request.SignInfo, cancellationToken);
         return await GenerateWithMessages(messages, cancellationToken);
     }
 

@@ -1,7 +1,10 @@
 using Hermes.Responses;
-using HoroscopeApi.Application.Features.Horoscopes.GetHoroscope;
+using HoroscopeApi.Application.Features.Horoscopes.GetDailyHoroscope;
+using HoroscopeApi.Application.Features.Horoscopes.GetDateHoroscope;
+using HoroscopeApi.Application.Features.Horoscopes.GetMonthlyHoroscope;
+using HoroscopeApi.Application.Features.Horoscopes.GetWeeklyHoroscope;
+using HoroscopeApi.Application.Features.Horoscopes.GetYearlyHoroscope;
 using HoroscopeApi.Application.Models;
-using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.WebApi.Constants;
 using HoroscopeApi.WebApi.Infrastructure.Extensions;
 
@@ -16,26 +19,96 @@ public sealed class HoroscopesEndpoints : IEndpoints
             .WithTags(Tags.Horoscopes)
             .WithDescription("Horoscope reading endpoints");
 
-        group.MapGet("{signName}", async (
+        group.MapGet("{signName}/daily", async (
                 string signName,
-                HoroscopePeriod? period,
-                DateOnly? date,
-                IQueryHandler<GetHoroscopeQuery, Response<HoroscopeData>> handler,
+                IQueryHandler<GetDailyHoroscopeRequest, Response<HoroscopeData>> handler,
                 CancellationToken cancellationToken) =>
             {
-                GetHoroscopeQuery query = new(signName, period, date);
-                Result<Response<HoroscopeData>> result = await handler.Handle(query, cancellationToken);
+                GetDailyHoroscopeRequest request = new(signName);
+                Result<Response<HoroscopeData>> result = await handler.Handle(request, cancellationToken);
 
                 return result.IsSuccess
                     ? TypedResults.Ok(result.Value!)
                     : result.ToErrorResponse();
             })
-            .WithName("GetHoroscope")
+            .WithName("GetDailyHoroscope")
+            .WithDescription("Get today's daily horoscope for a zodiac sign.")
+            .Produces<Response<HoroscopeData>>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("{signName}/weekly", async (
+                string signName,
+                IQueryHandler<GetWeeklyHoroscopeRequest, Response<HoroscopeData>> handler,
+                CancellationToken cancellationToken) =>
+            {
+                GetWeeklyHoroscopeRequest request = new(signName);
+                Result<Response<HoroscopeData>> result = await handler.Handle(request, cancellationToken);
+
+                return result.IsSuccess
+                    ? TypedResults.Ok(result.Value!)
+                    : result.ToErrorResponse();
+            })
+            .WithName("GetWeeklyHoroscope")
+            .WithDescription("Get this week's horoscope for a zodiac sign.")
+            .Produces<Response<HoroscopeData>>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("{signName}/monthly", async (
+                string signName,
+                IQueryHandler<GetMonthlyHoroscopeRequest, Response<HoroscopeData>> handler,
+                CancellationToken cancellationToken) =>
+            {
+                GetMonthlyHoroscopeRequest request = new(signName);
+                Result<Response<HoroscopeData>> result = await handler.Handle(request, cancellationToken);
+
+                return result.IsSuccess
+                    ? TypedResults.Ok(result.Value!)
+                    : result.ToErrorResponse();
+            })
+            .WithName("GetMonthlyHoroscope")
+            .WithDescription("Get this month's horoscope for a zodiac sign.")
+            .Produces<Response<HoroscopeData>>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("{signName}/yearly", async (
+                string signName,
+                int? year,
+                IQueryHandler<GetYearlyHoroscopeRequest, Response<HoroscopeData>> handler,
+                CancellationToken cancellationToken) =>
+            {
+                GetYearlyHoroscopeRequest request = new(signName, year);
+                Result<Response<HoroscopeData>> result = await handler.Handle(request, cancellationToken);
+
+                return result.IsSuccess
+                    ? TypedResults.Ok(result.Value!)
+                    : result.ToErrorResponse();
+            })
+            .WithName("GetYearlyHoroscope")
             .WithDescription(
-                "Get horoscope for a zodiac sign. " +
-                "Use 'period' query parameter to specify the horoscope period (daily, weekly, monthly, yearly). Defaults to daily if not specified. " +
-                "Use 'date' query parameter to get horoscope for a specific date (ISO format: yyyy-MM-dd). " +
-                "If 'date' is provided, it takes precedence and the horoscope will be daily regardless of the 'period' parameter.")
+                "Get this year's horoscope for a zodiac sign. " +
+                "Optionally specify a 'year' query parameter (defaults to current year).")
+            .Produces<Response<HoroscopeData>>()
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("{signName}/date/{date}", async (
+                string signName,
+                DateOnly date,
+                IQueryHandler<GetDateHoroscopeRequest, Response<HoroscopeData>> handler,
+                CancellationToken cancellationToken) =>
+            {
+                GetDateHoroscopeRequest request = new(signName, date);
+                Result<Response<HoroscopeData>> result = await handler.Handle(request, cancellationToken);
+
+                return result.IsSuccess
+                    ? TypedResults.Ok(result.Value!)
+                    : result.ToErrorResponse();
+            })
+            .WithName("GetDateHoroscope")
+            .WithDescription("Get horoscope for a zodiac sign on a specific date (ISO format: yyyy-MM-dd).")
             .Produces<Response<HoroscopeData>>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
