@@ -1,15 +1,15 @@
-using HoroscopeApi.Application.Features.Horoscopes.Shared;
 using HoroscopeApi.Application.Models;
+using HoroscopeApi.Application.Services.HoroscopeService;
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.ZodiacSigns;
 
 namespace HoroscopeApi.Application.Features.Horoscopes.GetDateHoroscope;
 
-internal sealed class GetDateHoroscopeHandler(HoroscopeQueryService horoscopeQueryService)
-    : IQueryHandler<GetDateHoroscopeRequest, Response<HoroscopeData>>
+internal sealed class GetDateHoroscopeHandler(IHoroscopeQueryService horoscopeQueryService)
+    : IQueryHandler<GetDateHoroscopeQuery, Response<HoroscopeData>>
 {
     public async Task<Result<Response<HoroscopeData>>> Handle(
-        GetDateHoroscopeRequest query,
+        GetDateHoroscopeQuery query,
         CancellationToken cancellationToken)
     {
         if (!Enum.TryParse(query.SignName, true, out ZodiacSign zodiacSign))

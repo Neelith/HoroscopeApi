@@ -1,37 +1,38 @@
+using Hermes.Responses;
 using HoroscopeApi.Application.Infrastructure.Caching;
 using HoroscopeApi.Application.Infrastructure.Persistance;
 using HoroscopeApi.Application.Models;
 using HoroscopeApi.Application.Services.AI;
-using HoroscopeApi.Application.Services.Time;
+using HoroscopeApi.Application.Services.HoroscopeService;
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.Horoscopes.Repositories;
 using HoroscopeApi.Domain.ZodiacSigns;
 using Microsoft.Extensions.Logging;
 
-namespace HoroscopeApi.Application.Features.Horoscopes.Shared;
+namespace HoroscopeApi.Infrastructure.HoroscopeService;
 
 internal sealed class HoroscopeQueryService(
     ILogger<HoroscopeQueryService> logger,
     IHoroscopeRepository horoscopeRepository,
     IHoroscopeGeneratorService horoscopeGeneratorService,
     IUnitOfWork unitOfWork,
-    IRedisCache cache,
-    IDateTimeProvider dateTimeProvider)
+    IRedisCache cache) : IHoroscopeQueryService
 {
-    public IDateTimeProvider DateTimeProvider => dateTimeProvider;
-
     public async Task<Result<Response<HoroscopeData>>> GetOrGenerateHoroscopeAsync(
         ZodiacSign zodiacSign,
         HoroscopePeriod period,
         DateOnly date,
         CancellationToken cancellationToken)
     {
+        Dictionary<string, string?> attributes = new() { { "cached", "false" } };
+
         // Try cache first
         string cacheKey = $"horoscope:{zodiacSign}:{period}:{date:yyyy-MM-dd}";
         HoroscopeData? cachedData = await cache.GetAsync<HoroscopeData>(cacheKey, cancellationToken);
         if (cachedData is not null)
         {
-            return Result.Ok(Response<HoroscopeData>.Create(cachedData));
+            attributes["cached"] = "true";
+            return Result.Ok(Response<HoroscopeData>.Create(cachedData, attributes));
         }
 
         GetHoroscopeBySignAndPeriodRepositoryQuery repositoryQuery = new(zodiacSign, period, date);
@@ -58,7 +59,7 @@ internal sealed class HoroscopeQueryService(
 
         await cache.SetAsync(cacheKey, data, cancellationToken: cancellationToken);
 
-        return Result.Ok(Response<HoroscopeData>.Create(data));
+        return Result.Ok(Response<HoroscopeData>.Create(data, attributes));
     }
 
     private async Task<Result<Horoscope?>> GenerateHoroscopeUsingAiAsync(

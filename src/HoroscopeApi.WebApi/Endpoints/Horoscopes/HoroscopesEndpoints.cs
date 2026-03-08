@@ -21,11 +21,11 @@ public sealed class HoroscopesEndpoints : IEndpoints
 
         group.MapGet("{signName}/daily", async (
                 string signName,
-                IQueryHandler<GetDailyHoroscopeRequest, Response<HoroscopeData>> handler,
+                IQueryHandler<GetDailyHoroscopeQuery, Response<HoroscopeData>> handler,
                 CancellationToken cancellationToken) =>
             {
-                GetDailyHoroscopeRequest request = new(signName);
-                Result<Response<HoroscopeData>> result = await handler.Handle(request, cancellationToken);
+                GetDailyHoroscopeQuery query = new(signName);
+                Result<Response<HoroscopeData>> result = await handler.Handle(query, cancellationToken);
 
                 return result.IsSuccess
                     ? TypedResults.Ok(result.Value!)
@@ -39,11 +39,11 @@ public sealed class HoroscopesEndpoints : IEndpoints
 
         group.MapGet("{signName}/weekly", async (
                 string signName,
-                IQueryHandler<GetWeeklyHoroscopeRequest, Response<HoroscopeData>> handler,
+                IQueryHandler<GetWeeklyHoroscopeQuery, Response<HoroscopeData>> handler,
                 CancellationToken cancellationToken) =>
             {
-                GetWeeklyHoroscopeRequest request = new(signName);
-                Result<Response<HoroscopeData>> result = await handler.Handle(request, cancellationToken);
+                GetWeeklyHoroscopeQuery query = new(signName);
+                Result<Response<HoroscopeData>> result = await handler.Handle(query, cancellationToken);
 
                 return result.IsSuccess
                     ? TypedResults.Ok(result.Value!)
@@ -57,11 +57,11 @@ public sealed class HoroscopesEndpoints : IEndpoints
 
         group.MapGet("{signName}/monthly", async (
                 string signName,
-                IQueryHandler<GetMonthlyHoroscopeRequest, Response<HoroscopeData>> handler,
+                IQueryHandler<GetMonthlyHoroscopeQuery, Response<HoroscopeData>> handler,
                 CancellationToken cancellationToken) =>
             {
-                GetMonthlyHoroscopeRequest request = new(signName);
-                Result<Response<HoroscopeData>> result = await handler.Handle(request, cancellationToken);
+                GetMonthlyHoroscopeQuery query = new(signName);
+                Result<Response<HoroscopeData>> result = await handler.Handle(query, cancellationToken);
 
                 return result.IsSuccess
                     ? TypedResults.Ok(result.Value!)
@@ -76,11 +76,11 @@ public sealed class HoroscopesEndpoints : IEndpoints
         group.MapGet("{signName}/yearly", async (
                 string signName,
                 int? year,
-                IQueryHandler<GetYearlyHoroscopeRequest, Response<HoroscopeData>> handler,
+                IQueryHandler<GetYearlyHoroscopeQuery, Response<HoroscopeData>> handler,
                 CancellationToken cancellationToken) =>
             {
-                GetYearlyHoroscopeRequest request = new(signName, year);
-                Result<Response<HoroscopeData>> result = await handler.Handle(request, cancellationToken);
+                GetYearlyHoroscopeQuery query = new(signName, year);
+                Result<Response<HoroscopeData>> result = await handler.Handle(query, cancellationToken);
 
                 return result.IsSuccess
                     ? TypedResults.Ok(result.Value!)
@@ -97,11 +97,11 @@ public sealed class HoroscopesEndpoints : IEndpoints
         group.MapGet("{signName}/date/{date}", async (
                 string signName,
                 DateOnly date,
-                IQueryHandler<GetDateHoroscopeRequest, Response<HoroscopeData>> handler,
+                IQueryHandler<GetDateHoroscopeQuery, Response<HoroscopeData>> handler,
                 CancellationToken cancellationToken) =>
             {
-                GetDateHoroscopeRequest request = new(signName, date);
-                Result<Response<HoroscopeData>> result = await handler.Handle(request, cancellationToken);
+                GetDateHoroscopeQuery query = new(signName, date);
+                Result<Response<HoroscopeData>> result = await handler.Handle(query, cancellationToken);
 
                 return result.IsSuccess
                     ? TypedResults.Ok(result.Value!)

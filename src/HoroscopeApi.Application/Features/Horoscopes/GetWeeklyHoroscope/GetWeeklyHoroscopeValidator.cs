@@ -2,7 +2,7 @@ using HoroscopeApi.Domain.ZodiacSigns;
 
 namespace HoroscopeApi.Application.Features.Horoscopes.GetWeeklyHoroscope;
 
-internal sealed class GetWeeklyHoroscopeValidator : AbstractValidator<GetWeeklyHoroscopeRequest>
+internal sealed class GetWeeklyHoroscopeValidator : AbstractValidator<GetWeeklyHoroscopeQuery>
 {
     public GetWeeklyHoroscopeValidator()
     {

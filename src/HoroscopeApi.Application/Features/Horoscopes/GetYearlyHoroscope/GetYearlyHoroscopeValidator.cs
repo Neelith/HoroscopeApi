@@ -2,7 +2,7 @@ using HoroscopeApi.Domain.ZodiacSigns;
 
 namespace HoroscopeApi.Application.Features.Horoscopes.GetYearlyHoroscope;
 
-internal sealed class GetYearlyHoroscopeValidator : AbstractValidator<GetYearlyHoroscopeRequest>
+internal sealed class GetYearlyHoroscopeValidator : AbstractValidator<GetYearlyHoroscopeQuery>
 {
     public GetYearlyHoroscopeValidator()
     {

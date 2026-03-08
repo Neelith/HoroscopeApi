@@ -1,15 +1,18 @@
-using HoroscopeApi.Application.Features.Horoscopes.Shared;
 using HoroscopeApi.Application.Models;
+using HoroscopeApi.Application.Services.HoroscopeService;
+using HoroscopeApi.Application.Services.Time;
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.ZodiacSigns;
 
 namespace HoroscopeApi.Application.Features.Horoscopes.GetYearlyHoroscope;
 
-internal sealed class GetYearlyHoroscopeHandler(HoroscopeQueryService horoscopeQueryService)
-    : IQueryHandler<GetYearlyHoroscopeRequest, Response<HoroscopeData>>
+internal sealed class GetYearlyHoroscopeHandler(
+    IHoroscopeQueryService horoscopeQueryService,
+    IDateTimeProvider dateTimeProvider)
+    : IQueryHandler<GetYearlyHoroscopeQuery, Response<HoroscopeData>>
 {
     public async Task<Result<Response<HoroscopeData>>> Handle(
-        GetYearlyHoroscopeRequest query,
+        GetYearlyHoroscopeQuery query,
         CancellationToken cancellationToken)
     {
         if (!Enum.TryParse(query.SignName, true, out ZodiacSign zodiacSign))
@@ -17,7 +20,7 @@ internal sealed class GetYearlyHoroscopeHandler(HoroscopeQueryService horoscopeQ
             return Result.Ko<Response<HoroscopeData>>(ZodiacSignErrors.InvalidName);
         }
 
-        int year = query.Year ?? horoscopeQueryService.DateTimeProvider.UtcNow.Year;
+        int year = query.Year ?? dateTimeProvider.UtcNow.Year;
         DateOnly date = new(year, 1, 1);
 
         return await horoscopeQueryService.GetOrGenerateHoroscopeAsync(

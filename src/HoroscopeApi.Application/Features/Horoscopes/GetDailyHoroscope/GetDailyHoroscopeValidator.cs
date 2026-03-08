@@ -2,7 +2,7 @@ using HoroscopeApi.Domain.ZodiacSigns;
 
 namespace HoroscopeApi.Application.Features.Horoscopes.GetDailyHoroscope;
 
-internal sealed class GetDailyHoroscopeValidator : AbstractValidator<GetDailyHoroscopeRequest>
+internal sealed class GetDailyHoroscopeValidator : AbstractValidator<GetDailyHoroscopeQuery>
 {
     public GetDailyHoroscopeValidator()
     {
