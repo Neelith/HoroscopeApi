@@ -13,7 +13,10 @@ public sealed class ApiKeysEndpoints : IEndpoints
     {
         RouteGroupBuilder group = app.MapGroup("api-keys")
             .WithTags(Tags.ApiKeys)
-            .WithDescription("API key management endpoints");
+            .WithDescription("API key management endpoints")
+            // The API keys endpoints are intended for internal use and should not be exposed in public API documentation.
+            // By excluding the group from description, we prevent it from appearing in generated API docs like Swagger/OpenAPI, while still allowing it to be used by authorized clients.
+            .ExcludeFromDescription();
 
         group.MapGet("", async (
                 [AsParameters] GetApiKeysQuery query,
