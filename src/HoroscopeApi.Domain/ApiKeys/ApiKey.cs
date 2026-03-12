@@ -5,6 +5,7 @@ namespace HoroscopeApi.Domain.ApiKeys;
 public class ApiKey : AuditableEntity
 {
     public int Id { get; set; }
+    public required Guid OwnerId { get; set; }
     public required string Prefix { get; set; }
     public required string Hash { get; set; }
     public required string Salt { get; set; }

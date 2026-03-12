@@ -13,6 +13,12 @@ public class ApiKeyConfiguration : IEntityTypeConfiguration<Domain.ApiKeys.ApiKe
 
         builder.HasKey(a => a.Id);
 
+        builder.Property(a => a.OwnerId)
+            .IsRequired();
+
+        builder.HasIndex(a => a.OwnerId)
+            .IsUnique(false);
+
         builder.Property(a => a.Prefix)
             .IsRequired()
             .HasMaxLength(128);

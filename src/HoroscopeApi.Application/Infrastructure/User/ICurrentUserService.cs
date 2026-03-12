@@ -4,4 +4,5 @@ public interface ICurrentUserService
 {
     bool IsCurrentUserAuthenticated();
     string GetCurrentUserId();
+    CurrentUser GetCurrentUser();
 }

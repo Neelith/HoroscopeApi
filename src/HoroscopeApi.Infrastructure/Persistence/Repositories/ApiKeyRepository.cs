@@ -14,6 +14,11 @@ internal sealed class ApiKeyRepository(ApplicationDbContext context) : IApiKeyRe
             .Include(a => a.Scopes)
             .AsNoTracking();
 
+        if (query.OwnerId.HasValue)
+        {
+            queryable = queryable.Where(a => a.OwnerId == query.OwnerId.Value);
+        }
+
         if (query.Type is not null)
         {
             queryable = queryable.Where(a => a.Type == query.Type.Value);

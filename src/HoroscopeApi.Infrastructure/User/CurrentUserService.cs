@@ -37,4 +37,41 @@ internal class CurrentUserService(
     {
         return httpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false;
     }
+
+    public CurrentUser GetCurrentUser()
+    {
+        ClaimsPrincipal? user = httpContextAccessor.HttpContext?.User;
+
+        if (user is not { Identity.IsAuthenticated: true })
+        {
+            logger.LogError("Attempted to get current user, but user is not authenticated.");
+            throw new UnauthorizedAccessException("User is not authenticated.");
+        }
+
+        string? userIdString = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userIdString))
+        {
+            logger.LogError("Current user ID claim is missing or empty.");
+            throw new InvalidOperationException("Current user ID claim is missing or empty.");
+        }
+
+        if (!Guid.TryParse(userIdString, out Guid userId))
+        {
+            logger.LogError("Current user ID '{UserId}' is not a valid GUID.", userIdString);
+            throw new InvalidOperationException("Current user ID is not a valid GUID.");
+        }
+
+        string? name = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+        string? email = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+
+        logger.LogDebug("Current user retrieved: {UserId}", userId);
+
+        return new CurrentUser
+        {
+            Id = userId,
+            Name = name,
+            Email = email
+        };
+    }
 }
