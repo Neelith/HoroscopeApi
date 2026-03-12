@@ -12,6 +12,7 @@ public sealed class ZodiacSignsEndpoints : IEndpoints
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         RouteGroupBuilder group = app.MapGroup("zodiac-signs")
+            .RequireAuthorization(AuthorizationPolicies.ApiKey)
             .WithTags(Tags.ZodiacSigns)
             .WithDescription("Zodiac sign information endpoints");
 

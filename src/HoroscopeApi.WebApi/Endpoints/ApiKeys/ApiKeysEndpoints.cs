@@ -12,7 +12,7 @@ public sealed class ApiKeysEndpoints : IEndpoints
     public void AddRoutes(IEndpointRouteBuilder app)
     {
         RouteGroupBuilder group = app.MapGroup("api-keys")
-            .RequireAuthorization(AuthorizationPolicies.ApiKey)
+            .RequireAuthorization()
             .WithTags(Tags.ApiKeys)
             .WithDescription("API key management endpoints")
             // The API keys endpoints are intended for internal use and should not be exposed in public API documentation.
