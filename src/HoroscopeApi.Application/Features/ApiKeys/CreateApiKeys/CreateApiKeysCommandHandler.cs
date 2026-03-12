@@ -1,4 +1,5 @@
 using HoroscopeApi.Application.Infrastructure.Persistance;
+using HoroscopeApi.Application.Infrastructure.User;
 using HoroscopeApi.Application.Models;
 using HoroscopeApi.Application.Services.ApiKey;
 using HoroscopeApi.Domain.ApiKeys;
@@ -11,7 +12,8 @@ internal sealed class CreateApiKeysCommandHandler(
     ILogger<CreateApiKeysCommandHandler> logger,
     IApiKeyRepository apiKeyRepository,
     IUnitOfWork unitOfWork,
-    IApiKeyService apiKeyService)
+    IApiKeyService apiKeyService,
+    ICurrentUserService currentUserService)
     : ICommandHandler<CreateApiKeysCommands, PagedResponse<CreateApiKeyData>>
 {
     private const int PrefixLength = 8;
@@ -21,6 +23,8 @@ internal sealed class CreateApiKeysCommandHandler(
         CreateApiKeysCommands commands,
         CancellationToken cancellationToken)
     {
+        CurrentUser currentUser = currentUserService.GetCurrentUser();
+
         List<(ApiKey Entity, string PlainTextKey)> created = [];
 
         foreach (CreateApiKeyCommand item in commands.Commands)
@@ -32,6 +36,7 @@ internal sealed class CreateApiKeysCommandHandler(
 
             ApiKey apiKey = new()
             {
+                OwnerId = currentUser.Id,
                 Prefix = prefix,
                 Hash = hash,
                 Salt = salt,
