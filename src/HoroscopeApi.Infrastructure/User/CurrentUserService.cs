@@ -40,21 +40,7 @@ internal class CurrentUserService(
 
     public CurrentUser GetCurrentUser()
     {
-        ClaimsPrincipal? user = httpContextAccessor.HttpContext?.User;
-
-        if (user is not { Identity.IsAuthenticated: true })
-        {
-            logger.LogError("Attempted to get current user, but user is not authenticated.");
-            throw new UnauthorizedAccessException("User is not authenticated.");
-        }
-
-        string? userIdString = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrEmpty(userIdString))
-        {
-            logger.LogError("Current user ID claim is missing or empty.");
-            throw new InvalidOperationException("Current user ID claim is missing or empty.");
-        }
+        string userIdString = GetCurrentUserId();
 
         if (!Guid.TryParse(userIdString, out Guid userId))
         {
@@ -62,6 +48,7 @@ internal class CurrentUserService(
             throw new InvalidOperationException("Current user ID is not a valid GUID.");
         }
 
+        ClaimsPrincipal user = httpContextAccessor.HttpContext!.User;
         string? name = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
         string? email = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
 
