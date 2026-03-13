@@ -75,4 +75,10 @@
         <ProjectReference Include="..\HoroscopeApi.Application\HoroscopeApi.Application.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>HoroscopeApi.Tests</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+
 </Project>
