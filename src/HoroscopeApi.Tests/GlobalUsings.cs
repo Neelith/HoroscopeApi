@@ -1,0 +1,10 @@
+global using Xunit;
+global using Moq;
+global using Hermes.Results;
+global using Hermes.Responses;
+global using HoroscopeApi.Domain.ZodiacSigns;
+global using HoroscopeApi.Domain.Horoscopes;
+global using HoroscopeApi.Domain.ApiKeys;
+global using System.Collections.Generic;
+global using System.Threading;
+global using System.Threading.Tasks;
