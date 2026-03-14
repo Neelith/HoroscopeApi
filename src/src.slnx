@@ -8,6 +8,6 @@
     <Project Path="HoroscopeApi.Application/HoroscopeApi.Application.csproj"/>
     <Project Path="HoroscopeApi.Domain/HoroscopeApi.Domain.csproj"/>
     <Project Path="HoroscopeApi.Infrastructure/HoroscopeApi.Infrastructure.csproj"/>
-    <Project Path="HoroscopeApi.WebApi/HoroscopeApi.WebApi.csproj"/>
     <Project Path="HoroscopeApi.Tests/HoroscopeApi.Tests.csproj"/>
+    <Project Path="HoroscopeApi.WebApi/HoroscopeApi.WebApi.csproj"/>
 </Solution>

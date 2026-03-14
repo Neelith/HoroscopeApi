@@ -1,10 +1,10 @@
 using System.Reflection;
 using HoroscopeApi.Application;
+using HoroscopeApi.Application.Settings;
 using HoroscopeApi.Infrastructure;
 using HoroscopeApi.Infrastructure.AI;
 using HoroscopeApi.Infrastructure.Caching;
 using HoroscopeApi.Infrastructure.Persistence;
-using HoroscopeApi.WebApi.Infrastructure.Settings;
 using HoroscopeApi.WebApi.Infrastructure.Setup.Extensions;
 using HoroscopeApi.WebApi.Infrastructure.Setup.Middlewares;
 

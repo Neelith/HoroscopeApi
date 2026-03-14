@@ -2,9 +2,9 @@ using System.Security.Cryptography;
 using System.Text;
 using HoroscopeApi.Application.Services.ApiKey;
 using HoroscopeApi.Application.Services.Time;
+using HoroscopeApi.Application.Settings;
 using HoroscopeApi.Domain.ApiKeys;
 using HoroscopeApi.Domain.ApiKeys.Repositories;
-using HoroscopeApi.WebApi.Infrastructure.Settings;
 using Microsoft.Extensions.Options;
 
 namespace HoroscopeApi.Infrastructure.ApiKey;

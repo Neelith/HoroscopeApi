@@ -1,4 +1,4 @@
-﻿using HoroscopeApi.WebApi.Infrastructure.Settings;
+﻿using HoroscopeApi.Application.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 

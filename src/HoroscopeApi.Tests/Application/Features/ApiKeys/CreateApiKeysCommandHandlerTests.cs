@@ -1,5 +1,6 @@
 using HoroscopeApi.Application.Features.ApiKeys.CreateApiKeys;
 using HoroscopeApi.Application.Infrastructure.Persistance;
+using HoroscopeApi.Application.Infrastructure.User;
 using HoroscopeApi.Application.Models;
 using HoroscopeApi.Application.Services.ApiKey;
 using HoroscopeApi.Domain.ApiKeys.Repositories;
@@ -10,13 +11,25 @@ namespace HoroscopeApi.Tests.Application.Features.ApiKeys;
 
 public sealed class CreateApiKeysCommandHandlerTests
 {
+    private readonly Mock<IApiKeyService> _apiKeyServiceMock = new();
+    private readonly Mock<ICurrentUserService> _currentUserServiceMock = new();
     private readonly ILogger<CreateApiKeysCommandHandler> _logger = NullLogger<CreateApiKeysCommandHandler>.Instance;
     private readonly Mock<IApiKeyRepository> _repositoryMock = new();
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
-    private readonly Mock<IApiKeyService> _apiKeyServiceMock = new();
 
-    private CreateApiKeysCommandHandler CreateHandler() =>
-        new(_logger, _repositoryMock.Object, _unitOfWorkMock.Object, _apiKeyServiceMock.Object);
+    public CreateApiKeysCommandHandlerTests()
+    {
+        _currentUserServiceMock
+            .Setup(s => s.GetCurrentUser())
+            .Returns(new CurrentUser { Id = Guid.NewGuid() });
+    }
+
+    private CreateApiKeysCommandHandler CreateHandler()
+    {
+        return new CreateApiKeysCommandHandler(_logger, _repositoryMock.Object, _unitOfWorkMock.Object,
+            _apiKeyServiceMock.Object,
+            _currentUserServiceMock.Object);
+    }
 
     [Fact]
     public async Task Handle_WithValidCommands_ReturnsPagedResponseWithCreatedKeys()
@@ -28,20 +41,21 @@ public sealed class CreateApiKeysCommandHandlerTests
         _apiKeyServiceMock.Setup(s => s.ComputeHash(It.IsAny<string>(), It.IsAny<string>()))
             .Returns("hashvalue==");
 
-        _repositoryMock.Setup(r => r.UpsertRangeAsync(It.IsAny<UpsertApiKeysRepositoryCommand>(), It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(r =>
+                r.UpsertRangeAsync(It.IsAny<UpsertApiKeysRepositoryCommand>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
         _unitOfWorkMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
-        var command = new CreateApiKeyCommand(ApiKeyType.Permanent, ApiKeyRateLimitType.None);
-        var commands = new CreateApiKeysCommands([command]);
-        var handler = CreateHandler();
+        CreateApiKeyCommand command = new(ApiKeyType.Permanent, ApiKeyRateLimitType.None);
+        CreateApiKeysCommands commands = new([command]);
+        CreateApiKeysCommandHandler handler = CreateHandler();
 
-        var result = await handler.Handle(commands, CancellationToken.None);
+        Result<PagedResponse<CreateApiKeyData>> result = await handler.Handle(commands, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
-        var items = result.Value!.Data.Items.ToList();
+        List<CreateApiKeyData> items = result.Value!.Data.Items.ToList();
         Assert.Single(items);
         Assert.Equal("abcdef12", items[0].Prefix);
         Assert.Equal("abcdef1234567890", items[0].PlainTextKey);
@@ -50,7 +64,7 @@ public sealed class CreateApiKeysCommandHandlerTests
     [Fact]
     public async Task Handle_WithMultipleCommands_ReturnsAllCreatedKeys()
     {
-        var callCount = 0;
+        int callCount = 0;
         _apiKeyServiceMock.Setup(s => s.GeneratePlainTextKey(It.IsAny<int>()))
             .Returns(() => callCount++ == 0 ? "abcdef1234567890" : "1234567890abcdef");
         _apiKeyServiceMock.Setup(s => s.GenerateSalt(It.IsAny<int>()))
@@ -58,18 +72,19 @@ public sealed class CreateApiKeysCommandHandlerTests
         _apiKeyServiceMock.Setup(s => s.ComputeHash(It.IsAny<string>(), It.IsAny<string>()))
             .Returns("hash==");
 
-        _repositoryMock.Setup(r => r.UpsertRangeAsync(It.IsAny<UpsertApiKeysRepositoryCommand>(), It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(r =>
+                r.UpsertRangeAsync(It.IsAny<UpsertApiKeysRepositoryCommand>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
         _unitOfWorkMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(2);
 
-        var commands = new CreateApiKeysCommands([
+        CreateApiKeysCommands commands = new([
             new CreateApiKeyCommand(ApiKeyType.Permanent, ApiKeyRateLimitType.None),
             new CreateApiKeyCommand(ApiKeyType.Temporary, ApiKeyRateLimitType.PerMinute, 100, 60)
         ]);
-        var handler = CreateHandler();
+        CreateApiKeysCommandHandler handler = CreateHandler();
 
-        var result = await handler.Handle(commands, CancellationToken.None);
+        Result<PagedResponse<CreateApiKeyData>> result = await handler.Handle(commands, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(2, result.Value!.Data.Items.Count());
@@ -85,17 +100,18 @@ public sealed class CreateApiKeysCommandHandlerTests
         _apiKeyServiceMock.Setup(s => s.ComputeHash(It.IsAny<string>(), It.IsAny<string>()))
             .Returns("hash==");
 
-        _repositoryMock.Setup(r => r.UpsertRangeAsync(It.IsAny<UpsertApiKeysRepositoryCommand>(), It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(r =>
+                r.UpsertRangeAsync(It.IsAny<UpsertApiKeysRepositoryCommand>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
         _unitOfWorkMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Database error"));
 
-        var commands = new CreateApiKeysCommands([
+        CreateApiKeysCommands commands = new([
             new CreateApiKeyCommand(ApiKeyType.Permanent, ApiKeyRateLimitType.None)
         ]);
-        var handler = CreateHandler();
+        CreateApiKeysCommandHandler handler = CreateHandler();
 
-        var result = await handler.Handle(commands, CancellationToken.None);
+        Result<PagedResponse<CreateApiKeyData>> result = await handler.Handle(commands, CancellationToken.None);
 
         Assert.True(result.IsFailure);
         Assert.Equal("ApiKey.CreationFailed", result.Errors[0].Code);
@@ -111,19 +127,20 @@ public sealed class CreateApiKeysCommandHandlerTests
         _apiKeyServiceMock.Setup(s => s.ComputeHash(It.IsAny<string>(), It.IsAny<string>()))
             .Returns("hash==");
 
-        _repositoryMock.Setup(r => r.UpsertRangeAsync(It.IsAny<UpsertApiKeysRepositoryCommand>(), It.IsAny<CancellationToken>()))
+        _repositoryMock.Setup(r =>
+                r.UpsertRangeAsync(It.IsAny<UpsertApiKeysRepositoryCommand>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
         _unitOfWorkMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
-        var command = new CreateApiKeyCommand(ApiKeyType.Permanent, ApiKeyRateLimitType.None, Scopes: ["read", "write"]);
-        var commands = new CreateApiKeysCommands([command]);
-        var handler = CreateHandler();
+        CreateApiKeyCommand command = new(ApiKeyType.Permanent, ApiKeyRateLimitType.None, Scopes: ["read", "write"]);
+        CreateApiKeysCommands commands = new([command]);
+        CreateApiKeysCommandHandler handler = CreateHandler();
 
-        var result = await handler.Handle(commands, CancellationToken.None);
+        Result<PagedResponse<CreateApiKeyData>> result = await handler.Handle(commands, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        var item = result.Value!.Data.Items.First();
+        CreateApiKeyData item = result.Value!.Data.Items.First();
         Assert.Contains("read", item.Scopes);
         Assert.Contains("write", item.Scopes);
     }

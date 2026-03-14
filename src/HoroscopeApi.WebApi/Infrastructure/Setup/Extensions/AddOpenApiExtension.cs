@@ -1,4 +1,4 @@
-﻿using HoroscopeApi.WebApi.Infrastructure.Settings;
+﻿using HoroscopeApi.Application.Settings;
 
 namespace HoroscopeApi.WebApi.Infrastructure.Setup.Extensions;
 

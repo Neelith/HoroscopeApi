@@ -1,4 +1,4 @@
-﻿namespace HoroscopeApi.WebApi.Infrastructure.Settings;
+﻿namespace HoroscopeApi.Application.Settings;
 
 public class JwtSettings
 {
