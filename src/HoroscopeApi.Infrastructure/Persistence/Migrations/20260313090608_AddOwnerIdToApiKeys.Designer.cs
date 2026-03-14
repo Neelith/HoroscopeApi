@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HoroscopeApi.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260312165823_AddOwnerIdToApiKeys")]
+    [Migration("20260313090608_AddOwnerIdToApiKeys")]
     partial class AddOwnerIdToApiKeys
     {
         /// <inheritdoc />

@@ -16,9 +16,11 @@ http:
           {
             "type": 0,
             "rateLimitType": 0,
-            "rateLimitCount": "",
-            "rateLimit": "",
-            "scopes": ""
+            "rateLimitCount": 0,
+            "rateLimit": 0,
+            "scopes": [
+              "horoscope.view"
+            ]
           }
         ]
       }

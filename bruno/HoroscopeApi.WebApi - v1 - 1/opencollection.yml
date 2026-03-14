@@ -16,10 +16,24 @@ config:
 
 request:
   auth:
-    type: apikey
-    key: x-api-key
-    value: "{{apiKey}}"
-    placement: header
+    type: oauth2
+    flow: resource_owner_password_credentials
+    accessTokenUrl: "{{accessTokenUrl}}"
+    credentials:
+      clientId: "{{clientId}}"
+      clientSecret: "{{clientSecret}}"
+      placement: body
+    resourceOwner:
+      username: "{{username}}"
+      password: "{{password}}"
+    scope: "{{scope}}"
+    tokenConfig:
+      id: credentials
+      placement:
+        header: Bearer
+    settings:
+      autoFetchToken: true
+      autoRefreshToken: false
 bundled: false
 extensions:
   bruno:
