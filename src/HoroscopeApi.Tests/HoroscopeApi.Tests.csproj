@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
@@ -8,19 +8,26 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0"/>
-        <PackageReference Include="Moq" Version="4.20.72"/>
-        <PackageReference Include="xunit" Version="2.9.3"/>
-        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.1">
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PackageReference Include="coverlet.collector" Version="8.0.0">
             <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0"/>
+        <PackageReference Include="xunit" Version="2.9.3"/>
+        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="FluentValidation" Version="12.1.1"/>
+        <PackageReference Include="Moq" Version="4.20.72"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit"/>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\HoroscopeApi.Application\HoroscopeApi.Application.csproj"/>
-        <ProjectReference Include="..\HoroscopeApi.Domain\HoroscopeApi.Domain.csproj"/>
         <ProjectReference Include="..\HoroscopeApi.Infrastructure\HoroscopeApi.Infrastructure.csproj"/>
     </ItemGroup>
 
