@@ -1,10 +1,10 @@
 using HoroscopeApi.Domain.ZodiacSigns;
 
-namespace HoroscopeApi.Application.Features.Horoscopes.GetYearlyHoroscope;
+namespace HoroscopeApi.Application.Features.Horoscopes.GetWeeklyHoroscope;
 
-internal sealed class GetYearlyHoroscopeValidator : AbstractValidator<GetYearlyHoroscopeQuery>
+internal sealed class GetWeeklyHoroscopeQueryValidator : AbstractValidator<GetWeeklyHoroscopeQuery>
 {
-    public GetYearlyHoroscopeValidator()
+    public GetWeeklyHoroscopeQueryValidator()
     {
         RuleFor(x => x.SignName)
             .NotEmpty()

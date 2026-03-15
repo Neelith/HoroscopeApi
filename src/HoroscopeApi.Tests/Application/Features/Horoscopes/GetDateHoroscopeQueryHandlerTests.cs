@@ -4,11 +4,14 @@ using HoroscopeApi.Application.Services.HoroscopeService;
 
 namespace HoroscopeApi.Tests.Application.Features.Horoscopes;
 
-public sealed class GetDateHoroscopeHandlerTests
+public sealed class GetDateHoroscopeQueryHandlerTests
 {
     private readonly Mock<IHoroscopeQueryService> _queryServiceMock = new();
 
-    private GetDateHoroscopeHandler CreateHandler() => new(_queryServiceMock.Object);
+    private GetDateHoroscopeQueryHandler CreateHandler()
+    {
+        return new GetDateHoroscopeQueryHandler(_queryServiceMock.Object);
+    }
 
     private static Response<HoroscopeData> BuildHoroscopeResponse(DateOnly date)
     {
@@ -17,8 +20,13 @@ public sealed class GetDateHoroscopeHandlerTests
             Sign = "libra",
             SignInfo = new ZodiacSignInfoData
             {
-                Name = "Libra", Symbol = "♎", Element = "Air", Quality = "Cardinal",
-                Polarity = "Positive", RulingPlanet = "Venus", DateRange = "September 23 - October 22",
+                Name = "Libra",
+                Symbol = "♎",
+                Element = "Air",
+                Quality = "Cardinal",
+                Polarity = "Positive",
+                RulingPlanet = "Venus",
+                DateRange = "September 23 - October 22",
                 Description = "The balanced sign."
             },
             Period = "daily",
@@ -52,7 +60,8 @@ public sealed class GetDateHoroscopeHandlerTests
     {
         var date = new DateOnly(2024, 10, 1);
 
-        var result = await CreateHandler().Handle(new GetDateHoroscopeQuery("InvalidSign", date), CancellationToken.None);
+        Result<Response<HoroscopeData>> result = await CreateHandler()
+            .Handle(new GetDateHoroscopeQuery("InvalidSign", date), CancellationToken.None);
 
         Assert.True(result.IsFailure);
         Assert.Equal("ZodiacSign.InvalidName", result.Errors[0].Code);

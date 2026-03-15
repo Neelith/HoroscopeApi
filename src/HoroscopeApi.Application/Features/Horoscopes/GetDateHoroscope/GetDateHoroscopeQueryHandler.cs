@@ -1,18 +1,15 @@
 using HoroscopeApi.Application.Models;
 using HoroscopeApi.Application.Services.HoroscopeService;
-using HoroscopeApi.Application.Services.Time;
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.ZodiacSigns;
 
-namespace HoroscopeApi.Application.Features.Horoscopes.GetDailyHoroscope;
+namespace HoroscopeApi.Application.Features.Horoscopes.GetDateHoroscope;
 
-internal sealed class GetDailyHoroscopeHandler(
-    IHoroscopeQueryService horoscopeQueryService,
-    IDateTimeProvider dateTimeProvider)
-    : IQueryHandler<GetDailyHoroscopeQuery, Response<HoroscopeData>>
+internal sealed class GetDateHoroscopeQueryHandler(IHoroscopeQueryService horoscopeQueryService)
+    : IQueryHandler<GetDateHoroscopeQuery, Response<HoroscopeData>>
 {
     public async Task<Result<Response<HoroscopeData>>> Handle(
-        GetDailyHoroscopeQuery query,
+        GetDateHoroscopeQuery query,
         CancellationToken cancellationToken)
     {
         if (!Enum.TryParse(query.SignName, true, out ZodiacSign zodiacSign))
@@ -20,9 +17,7 @@ internal sealed class GetDailyHoroscopeHandler(
             return Result.Ko<Response<HoroscopeData>>(ZodiacSignErrors.InvalidName);
         }
 
-        DateOnly date = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
-
         return await horoscopeQueryService.GetOrGenerateHoroscopeAsync(
-            zodiacSign, HoroscopePeriod.Daily, date, cancellationToken);
+            zodiacSign, HoroscopePeriod.Daily, query.Date, cancellationToken);
     }
 }

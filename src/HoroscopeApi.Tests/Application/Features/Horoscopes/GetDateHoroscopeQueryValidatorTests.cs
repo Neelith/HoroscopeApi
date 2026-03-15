@@ -2,9 +2,9 @@ using HoroscopeApi.Application.Features.Horoscopes.GetDateHoroscope;
 
 namespace HoroscopeApi.Tests.Application.Features.Horoscopes;
 
-public sealed class GetDateHoroscopeValidatorTests
+public sealed class GetDateHoroscopeQueryValidatorTests
 {
-    private readonly GetDateHoroscopeValidator _validator = new();
+    private readonly GetDateHoroscopeQueryValidator _validator = new();
 
     [Fact]
     public void Validate_WithValidSignAndPastDate_IsValid()

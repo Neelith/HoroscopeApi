@@ -5,13 +5,15 @@ using HoroscopeApi.Application.Services.Time;
 
 namespace HoroscopeApi.Tests.Application.Features.Horoscopes;
 
-public sealed class GetDailyHoroscopeHandlerTests
+public sealed class GetDailyHoroscopeQueryHandlerTests
 {
-    private readonly Mock<IHoroscopeQueryService> _queryServiceMock = new();
     private readonly Mock<IDateTimeProvider> _dateTimeProviderMock = new();
+    private readonly Mock<IHoroscopeQueryService> _queryServiceMock = new();
 
-    private GetDailyHoroscopeHandler CreateHandler() =>
-        new(_queryServiceMock.Object, _dateTimeProviderMock.Object);
+    private GetDailyHoroscopeQueryHandler CreateHandler()
+    {
+        return new GetDailyHoroscopeQueryHandler(_queryServiceMock.Object, _dateTimeProviderMock.Object);
+    }
 
     private static Response<HoroscopeData> BuildHoroscopeResponse()
     {
@@ -20,8 +22,13 @@ public sealed class GetDailyHoroscopeHandlerTests
             Sign = "aries",
             SignInfo = new ZodiacSignInfoData
             {
-                Name = "Aries", Symbol = "♈", Element = "Fire", Quality = "Cardinal",
-                Polarity = "Positive", RulingPlanet = "Mars", DateRange = "March 21 - April 19",
+                Name = "Aries",
+                Symbol = "♈",
+                Element = "Fire",
+                Quality = "Cardinal",
+                Polarity = "Positive",
+                RulingPlanet = "Mars",
+                DateRange = "March 21 - April 19",
                 Description = "The first sign."
             },
             Period = "daily",

@@ -5,28 +5,38 @@ using HoroscopeApi.Application.Services.Time;
 
 namespace HoroscopeApi.Tests.Application.Features.Horoscopes;
 
-public sealed class GetYearlyHoroscopeHandlerTests
+public sealed class GetYearlyHoroscopeQueryHandlerTests
 {
-    private readonly Mock<IHoroscopeQueryService> _queryServiceMock = new();
     private readonly Mock<IDateTimeProvider> _dateTimeProviderMock = new();
+    private readonly Mock<IHoroscopeQueryService> _queryServiceMock = new();
 
-    private GetYearlyHoroscopeHandler CreateHandler() =>
-        new(_queryServiceMock.Object, _dateTimeProviderMock.Object);
+    private GetYearlyHoroscopeQueryHandler CreateHandler()
+    {
+        return new GetYearlyHoroscopeQueryHandler(_queryServiceMock.Object, _dateTimeProviderMock.Object);
+    }
 
     private static Response<HoroscopeData> BuildResponse(int year) =>
         Response<HoroscopeData>.Create(new HoroscopeData
         {
-            Sign = "virgo", Period = "yearly",
+            Sign = "virgo",
+            Period = "yearly",
             Date = new DateOnly(year, 1, 1),
             SignInfo = new ZodiacSignInfoData
             {
-                Name = "Virgo", Symbol = "♍", Element = "Earth", Quality = "Mutable",
-                Polarity = "Negative", RulingPlanet = "Mercury",
-                DateRange = "August 23 - September 22", Description = "The analyst."
+                Name = "Virgo",
+                Symbol = "♍",
+                Element = "Earth",
+                Quality = "Mutable",
+                Polarity = "Negative",
+                RulingPlanet = "Mercury",
+                DateRange = "August 23 - September 22",
+                Description = "The analyst."
             },
             Predictions = new HoroscopePredictions { General = "Analyze carefully." },
-            LuckyNumbers = [3, 5, 15], LuckyColors = ["green"],
-            MoodScore = 7, Keywords = ["precision"]
+            LuckyNumbers = [3, 5, 15],
+            LuckyColors = ["green"],
+            MoodScore = 7,
+            Keywords = ["precision"]
         });
 
     [Fact]

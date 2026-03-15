@@ -14,10 +14,10 @@ http:
       {
         "commands": [
           {
-            "type": 0,
-            "rateLimitType": 0,
+            "type": 1,
+            "rateLimitType": 1,
             "rateLimitCount": 0,
-            "rateLimit": 0,
+            "rateLimit": 10,
             "scopes": [
               "horoscope.view"
             ]

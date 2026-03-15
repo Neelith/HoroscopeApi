@@ -2,9 +2,9 @@ using HoroscopeApi.Application.Features.Horoscopes.GetDailyHoroscope;
 
 namespace HoroscopeApi.Tests.Application.Features.Horoscopes;
 
-public sealed class GetDailyHoroscopeValidatorTests
+public sealed class GetDailyHoroscopeQueryValidatorTests
 {
-    private readonly GetDailyHoroscopeValidator _validator = new();
+    private readonly GetDailyHoroscopeQueryValidator _validator = new();
 
     [Theory]
     [InlineData("Aries")]

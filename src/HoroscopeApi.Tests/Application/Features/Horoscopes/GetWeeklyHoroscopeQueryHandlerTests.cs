@@ -1,48 +1,58 @@
-using HoroscopeApi.Application.Features.Horoscopes.GetMonthlyHoroscope;
+using HoroscopeApi.Application.Features.Horoscopes.GetWeeklyHoroscope;
 using HoroscopeApi.Application.Models;
 using HoroscopeApi.Application.Services.HoroscopeService;
 using HoroscopeApi.Application.Services.Time;
 
 namespace HoroscopeApi.Tests.Application.Features.Horoscopes;
 
-public sealed class GetMonthlyHoroscopeHandlerTests
+public sealed class GetWeeklyHoroscopeQueryHandlerTests
 {
-    private readonly Mock<IHoroscopeQueryService> _queryServiceMock = new();
     private readonly Mock<IDateTimeProvider> _dateTimeProviderMock = new();
+    private readonly Mock<IHoroscopeQueryService> _queryServiceMock = new();
 
-    private GetMonthlyHoroscopeHandler CreateHandler() =>
-        new(_queryServiceMock.Object, _dateTimeProviderMock.Object);
+    private GetWeeklyHoroscopeQueryHandler CreateHandler()
+    {
+        return new GetWeeklyHoroscopeQueryHandler(_queryServiceMock.Object, _dateTimeProviderMock.Object);
+    }
 
     private static Response<HoroscopeData> BuildResponse() =>
         Response<HoroscopeData>.Create(new HoroscopeData
         {
-            Sign = "scorpio", Period = "monthly",
-            Date = new DateOnly(2024, 11, 1),
+            Sign = "cancer",
+            Period = "weekly",
+            Date = new DateOnly(2024, 7, 1),
             SignInfo = new ZodiacSignInfoData
             {
-                Name = "Scorpio", Symbol = "♏", Element = "Water", Quality = "Fixed",
-                Polarity = "Negative", RulingPlanet = "Pluto",
-                DateRange = "October 23 - November 21", Description = "Deep."
+                Name = "Cancer",
+                Symbol = "♋",
+                Element = "Water",
+                Quality = "Cardinal",
+                Polarity = "Negative",
+                RulingPlanet = "Moon",
+                DateRange = "June 21 - July 22",
+                Description = "The nurturer."
             },
-            Predictions = new HoroscopePredictions { General = "Transform." },
-            LuckyNumbers = [8, 11, 18], LuckyColors = ["black"],
-            MoodScore = 6, Keywords = ["transformation"]
+            Predictions = new HoroscopePredictions { General = "Nurture connections." },
+            LuckyNumbers = [2, 7, 11],
+            LuckyColors = ["silver"],
+            MoodScore = 7,
+            Keywords = ["home"]
         });
 
     [Fact]
     public async Task Handle_WithValidSignName_ReturnsHoroscopeData()
     {
-        var now = new DateTime(2024, 11, 1);
+        var now = new DateTime(2024, 7, 1);
         _dateTimeProviderMock.Setup(p => p.UtcNow).Returns(now);
         _queryServiceMock.Setup(s => s.GetOrGenerateHoroscopeAsync(
-                ZodiacSign.Scorpio, HoroscopePeriod.Monthly,
+                ZodiacSign.Cancer, HoroscopePeriod.Weekly,
                 DateOnly.FromDateTime(now), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok(BuildResponse()));
 
-        var result = await CreateHandler().Handle(new GetMonthlyHoroscopeQuery("Scorpio"), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetWeeklyHoroscopeQuery("Cancer"), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("monthly", result.Value!.Data.Period);
+        Assert.Equal("weekly", result.Value!.Data.Period);
     }
 
     [Fact]
@@ -50,14 +60,14 @@ public sealed class GetMonthlyHoroscopeHandlerTests
     {
         _dateTimeProviderMock.Setup(p => p.UtcNow).Returns(DateTime.UtcNow);
 
-        var result = await CreateHandler().Handle(new GetMonthlyHoroscopeQuery("Bogus"), CancellationToken.None);
+        var result = await CreateHandler().Handle(new GetWeeklyHoroscopeQuery("NotValid"), CancellationToken.None);
 
         Assert.True(result.IsFailure);
         Assert.Equal("ZodiacSign.InvalidName", result.Errors[0].Code);
     }
 
     [Fact]
-    public async Task Handle_UsesPeriodMonthly()
+    public async Task Handle_UsesPeriodWeekly()
     {
         var now = DateTime.UtcNow;
         _dateTimeProviderMock.Setup(p => p.UtcNow).Returns(now);
@@ -69,8 +79,8 @@ public sealed class GetMonthlyHoroscopeHandlerTests
             .Callback<ZodiacSign, HoroscopePeriod, DateOnly, CancellationToken>((_, p, _, _) => capturedPeriod = p)
             .ReturnsAsync(Result.Ok(BuildResponse()));
 
-        await CreateHandler().Handle(new GetMonthlyHoroscopeQuery("Aries"), CancellationToken.None);
+        await CreateHandler().Handle(new GetWeeklyHoroscopeQuery("Aries"), CancellationToken.None);
 
-        Assert.Equal(HoroscopePeriod.Monthly, capturedPeriod);
+        Assert.Equal(HoroscopePeriod.Weekly, capturedPeriod);
     }
 }

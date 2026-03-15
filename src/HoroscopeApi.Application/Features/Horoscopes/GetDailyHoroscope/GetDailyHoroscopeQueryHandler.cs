@@ -4,15 +4,15 @@ using HoroscopeApi.Application.Services.Time;
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.ZodiacSigns;
 
-namespace HoroscopeApi.Application.Features.Horoscopes.GetMonthlyHoroscope;
+namespace HoroscopeApi.Application.Features.Horoscopes.GetDailyHoroscope;
 
-internal sealed class GetMonthlyHoroscopeHandler(
+internal sealed class GetDailyHoroscopeQueryHandler(
     IHoroscopeQueryService horoscopeQueryService,
     IDateTimeProvider dateTimeProvider)
-    : IQueryHandler<GetMonthlyHoroscopeQuery, Response<HoroscopeData>>
+    : IQueryHandler<GetDailyHoroscopeQuery, Response<HoroscopeData>>
 {
     public async Task<Result<Response<HoroscopeData>>> Handle(
-        GetMonthlyHoroscopeQuery query,
+        GetDailyHoroscopeQuery query,
         CancellationToken cancellationToken)
     {
         if (!Enum.TryParse(query.SignName, true, out ZodiacSign zodiacSign))
@@ -23,6 +23,6 @@ internal sealed class GetMonthlyHoroscopeHandler(
         DateOnly date = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
 
         return await horoscopeQueryService.GetOrGenerateHoroscopeAsync(
-            zodiacSign, HoroscopePeriod.Monthly, date, cancellationToken);
+            zodiacSign, HoroscopePeriod.Daily, date, cancellationToken);
     }
 }

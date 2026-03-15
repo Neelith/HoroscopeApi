@@ -2,9 +2,9 @@ using HoroscopeApi.Application.Features.Horoscopes.GetYearlyHoroscope;
 
 namespace HoroscopeApi.Tests.Application.Features.Horoscopes;
 
-public sealed class GetYearlyHoroscopeValidatorTests
+public sealed class GetYearlyHoroscopeQueryValidatorTests
 {
-    private readonly GetYearlyHoroscopeValidator _validator = new();
+    private readonly GetYearlyHoroscopeQueryValidator _validator = new();
 
     [Theory]
     [InlineData("Sagittarius")]

@@ -2,9 +2,9 @@ using HoroscopeApi.Domain.ZodiacSigns;
 
 namespace HoroscopeApi.Application.Features.Horoscopes.GetDateHoroscope;
 
-internal sealed class GetDateHoroscopeValidator : AbstractValidator<GetDateHoroscopeQuery>
+internal sealed class GetDateHoroscopeQueryValidator : AbstractValidator<GetDateHoroscopeQuery>
 {
-    public GetDateHoroscopeValidator()
+    public GetDateHoroscopeQueryValidator()
     {
         RuleFor(x => x.SignName)
             .NotEmpty()

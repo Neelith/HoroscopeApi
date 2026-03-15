@@ -4,15 +4,15 @@ using HoroscopeApi.Application.Services.Time;
 using HoroscopeApi.Domain.Horoscopes;
 using HoroscopeApi.Domain.ZodiacSigns;
 
-namespace HoroscopeApi.Application.Features.Horoscopes.GetWeeklyHoroscope;
+namespace HoroscopeApi.Application.Features.Horoscopes.GetYearlyHoroscope;
 
-internal sealed class GetWeeklyHoroscopeHandler(
+internal sealed class GetYearlyHoroscopeQueryHandler(
     IHoroscopeQueryService horoscopeQueryService,
     IDateTimeProvider dateTimeProvider)
-    : IQueryHandler<GetWeeklyHoroscopeQuery, Response<HoroscopeData>>
+    : IQueryHandler<GetYearlyHoroscopeQuery, Response<HoroscopeData>>
 {
     public async Task<Result<Response<HoroscopeData>>> Handle(
-        GetWeeklyHoroscopeQuery query,
+        GetYearlyHoroscopeQuery query,
         CancellationToken cancellationToken)
     {
         if (!Enum.TryParse(query.SignName, true, out ZodiacSign zodiacSign))
@@ -20,9 +20,10 @@ internal sealed class GetWeeklyHoroscopeHandler(
             return Result.Ko<Response<HoroscopeData>>(ZodiacSignErrors.InvalidName);
         }
 
-        DateOnly date = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        int year = query.Year ?? dateTimeProvider.UtcNow.Year;
+        DateOnly date = new(year, 1, 1);
 
         return await horoscopeQueryService.GetOrGenerateHoroscopeAsync(
-            zodiacSign, HoroscopePeriod.Weekly, date, cancellationToken);
+            zodiacSign, HoroscopePeriod.Yearly, date, cancellationToken);
     }
 }
