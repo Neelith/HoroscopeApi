@@ -15,13 +15,11 @@ public sealed class GetYearlyHoroscopeQueryHandlerTests
         return new GetYearlyHoroscopeQueryHandler(_queryServiceMock.Object, _dateTimeProviderMock.Object);
     }
 
-    private static Response<HoroscopeData> BuildResponse(int year) =>
-        Response<HoroscopeData>.Create(new HoroscopeData
+    private static HoroscopeData BuildHoroscopeData(int year)
+    {
+        return new HoroscopeData
         {
-            Sign = "virgo",
-            Period = "yearly",
-            Date = new DateOnly(year, 1, 1),
-            SignInfo = new ZodiacSignInfoData
+            ZodiacSign = new ZodiacSignData
             {
                 Name = "Virgo",
                 Symbol = "♍",
@@ -32,12 +30,15 @@ public sealed class GetYearlyHoroscopeQueryHandlerTests
                 DateRange = "August 23 - September 22",
                 Description = "The analyst."
             },
+            Period = "yearly",
+            Date = new DateOnly(year, 1, 1),
             Predictions = new HoroscopePredictions { General = "Analyze carefully." },
             LuckyNumbers = [3, 5, 15],
             LuckyColors = ["green"],
             MoodScore = 7,
             Keywords = ["precision"]
-        });
+        };
+    }
 
     [Fact]
     public async Task Handle_WithExplicitYear_UsesProvidedYear()
@@ -49,7 +50,7 @@ public sealed class GetYearlyHoroscopeQueryHandlerTests
                 It.IsAny<ZodiacSign>(), It.IsAny<HoroscopePeriod>(),
                 It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .Callback<ZodiacSign, HoroscopePeriod, DateOnly, CancellationToken>((_, _, d, _) => capturedDate = d)
-            .ReturnsAsync(Result.Ok(BuildResponse(2025)));
+            .ReturnsAsync(Result.Ok((BuildHoroscopeData(2025), false)));
 
         await CreateHandler().Handle(new GetYearlyHoroscopeQuery("Virgo", 2025), CancellationToken.None);
 
@@ -67,7 +68,7 @@ public sealed class GetYearlyHoroscopeQueryHandlerTests
                 It.IsAny<ZodiacSign>(), It.IsAny<HoroscopePeriod>(),
                 It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .Callback<ZodiacSign, HoroscopePeriod, DateOnly, CancellationToken>((_, _, d, _) => capturedDate = d)
-            .ReturnsAsync(Result.Ok(BuildResponse(2024)));
+            .ReturnsAsync(Result.Ok((BuildHoroscopeData(2024), false)));
 
         await CreateHandler().Handle(new GetYearlyHoroscopeQuery("Aries"), CancellationToken.None);
 
@@ -82,7 +83,7 @@ public sealed class GetYearlyHoroscopeQueryHandlerTests
         _queryServiceMock.Setup(s => s.GetOrGenerateHoroscopeAsync(
                 ZodiacSign.Virgo, HoroscopePeriod.Yearly,
                 new DateOnly(2024, 1, 1), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Ok(BuildResponse(2024)));
+            .ReturnsAsync(Result.Ok((BuildHoroscopeData(2024), false)));
 
         var result = await CreateHandler().Handle(new GetYearlyHoroscopeQuery("Virgo"), CancellationToken.None);
 
@@ -111,7 +112,7 @@ public sealed class GetYearlyHoroscopeQueryHandlerTests
                 It.IsAny<ZodiacSign>(), It.IsAny<HoroscopePeriod>(),
                 It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .Callback<ZodiacSign, HoroscopePeriod, DateOnly, CancellationToken>((_, p, _, _) => capturedPeriod = p)
-            .ReturnsAsync(Result.Ok(BuildResponse(2024)));
+            .ReturnsAsync(Result.Ok((BuildHoroscopeData(2024), false)));
 
         await CreateHandler().Handle(new GetYearlyHoroscopeQuery("Aries"), CancellationToken.None);
 

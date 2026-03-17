@@ -5,7 +5,7 @@ namespace HoroscopeApi.Application.Services.CompatibilityService;
 
 public interface ICompatibilityQueryService
 {
-    Task<Result<Response<CompatibilityData>>> GetOrGenerateCompatibilityAsync(
+    Task<Result<(CompatibilityData Data, bool IsCached)>> GetOrGenerateCompatibilityAsync(
         ZodiacSign firstSign,
         ZodiacSign secondSign,
         CancellationToken cancellationToken);

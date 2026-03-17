@@ -5,8 +5,7 @@ namespace HoroscopeApi.Application.Models;
 
 public sealed record HoroscopeData
 {
-    public required string Sign { get; init; }
-    public required ZodiacSignInfoData SignInfo { get; init; }
+    public required ZodiacSignData ZodiacSign { get; init; }
     public required string Period { get; init; }
     public required DateOnly Date { get; init; }
     public required HoroscopePredictions Predictions { get; init; }
@@ -21,8 +20,7 @@ public sealed record HoroscopeData
 
         return new HoroscopeData
         {
-            Sign = horoscope.ZodiacSignInfo.Sign.ToString().ToLowerInvariant(),
-            SignInfo = new ZodiacSignInfoData
+            ZodiacSign = new ZodiacSignData
             {
                 Name = signInfo.Name,
                 Symbol = signInfo.Symbol,

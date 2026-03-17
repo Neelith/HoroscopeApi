@@ -15,13 +15,11 @@ public sealed class GetWeeklyHoroscopeQueryHandlerTests
         return new GetWeeklyHoroscopeQueryHandler(_queryServiceMock.Object, _dateTimeProviderMock.Object);
     }
 
-    private static Response<HoroscopeData> BuildResponse() =>
-        Response<HoroscopeData>.Create(new HoroscopeData
+    private static HoroscopeData BuildHoroscopeData()
+    {
+        return new HoroscopeData
         {
-            Sign = "cancer",
-            Period = "weekly",
-            Date = new DateOnly(2024, 7, 1),
-            SignInfo = new ZodiacSignInfoData
+            ZodiacSign = new ZodiacSignData
             {
                 Name = "Cancer",
                 Symbol = "♋",
@@ -32,12 +30,15 @@ public sealed class GetWeeklyHoroscopeQueryHandlerTests
                 DateRange = "June 21 - July 22",
                 Description = "The nurturer."
             },
+            Period = "weekly",
+            Date = new DateOnly(2024, 7, 1),
             Predictions = new HoroscopePredictions { General = "Nurture connections." },
             LuckyNumbers = [2, 7, 11],
             LuckyColors = ["silver"],
             MoodScore = 7,
             Keywords = ["home"]
-        });
+        };
+    }
 
     [Fact]
     public async Task Handle_WithValidSignName_ReturnsHoroscopeData()
@@ -47,7 +48,7 @@ public sealed class GetWeeklyHoroscopeQueryHandlerTests
         _queryServiceMock.Setup(s => s.GetOrGenerateHoroscopeAsync(
                 ZodiacSign.Cancer, HoroscopePeriod.Weekly,
                 DateOnly.FromDateTime(now), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Ok(BuildResponse()));
+            .ReturnsAsync(Result.Ok((BuildHoroscopeData(), false)));
 
         var result = await CreateHandler().Handle(new GetWeeklyHoroscopeQuery("Cancer"), CancellationToken.None);
 
@@ -77,7 +78,7 @@ public sealed class GetWeeklyHoroscopeQueryHandlerTests
                 It.IsAny<ZodiacSign>(), It.IsAny<HoroscopePeriod>(),
                 It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .Callback<ZodiacSign, HoroscopePeriod, DateOnly, CancellationToken>((_, p, _, _) => capturedPeriod = p)
-            .ReturnsAsync(Result.Ok(BuildResponse()));
+            .ReturnsAsync(Result.Ok((BuildHoroscopeData(), false)));
 
         await CreateHandler().Handle(new GetWeeklyHoroscopeQuery("Aries"), CancellationToken.None);
 

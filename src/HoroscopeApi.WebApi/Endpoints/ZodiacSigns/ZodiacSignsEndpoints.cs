@@ -17,11 +17,11 @@ public sealed class ZodiacSignsEndpoints : IEndpoints
             .WithDescription("Zodiac sign information endpoints");
 
         group.MapGet("", async (
-                IQueryHandler<GetAllZodiacSignsQuery, PagedResponse<ZodiacSignInfoData>> handler,
+                IQueryHandler<GetAllZodiacSignsQuery, PagedResponse<ZodiacSignData>> handler,
                 CancellationToken cancellationToken) =>
             {
                 GetAllZodiacSignsQuery query = new();
-                Result<PagedResponse<ZodiacSignInfoData>> result = await handler.Handle(query, cancellationToken);
+                Result<PagedResponse<ZodiacSignData>> result = await handler.Handle(query, cancellationToken);
 
                 return result.IsSuccess
                     ? TypedResults.Ok(result.Value!)
@@ -29,15 +29,15 @@ public sealed class ZodiacSignsEndpoints : IEndpoints
             })
             .WithName("GetAllZodiacSigns")
             .WithDescription("Get all zodiac signs with their information")
-            .Produces<PagedResponse<ZodiacSignInfoData>>();
+            .Produces<PagedResponse<ZodiacSignData>>();
 
         group.MapGet("{signName}", async (
                 string signName,
-                IQueryHandler<GetZodiacSignByNameQuery, Response<ZodiacSignInfoData>> handler,
+                IQueryHandler<GetZodiacSignByNameQuery, Response<ZodiacSignData>> handler,
                 CancellationToken cancellationToken) =>
             {
                 GetZodiacSignByNameQuery query = new(signName);
-                Result<Response<ZodiacSignInfoData>> result = await handler.Handle(query, cancellationToken);
+                Result<Response<ZodiacSignData>> result = await handler.Handle(query, cancellationToken);
 
                 return result.IsSuccess
                     ? TypedResults.Ok(result.Value!)
@@ -45,7 +45,7 @@ public sealed class ZodiacSignsEndpoints : IEndpoints
             })
             .WithName("GetZodiacSignByName")
             .WithDescription("Get zodiac sign information by name")
-            .Produces<Response<ZodiacSignInfoData>>()
+            .Produces<Response<ZodiacSignData>>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
     }

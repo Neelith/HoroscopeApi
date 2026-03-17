@@ -6,7 +6,7 @@ namespace HoroscopeApi.Application.Services.HoroscopeService;
 
 public interface IHoroscopeQueryService
 {
-    Task<Result<Response<HoroscopeData>>> GetOrGenerateHoroscopeAsync(
+    Task<Result<(HoroscopeData Data, bool IsCached)>> GetOrGenerateHoroscopeAsync(
         ZodiacSign zodiacSign,
         HoroscopePeriod period,
         DateOnly date,

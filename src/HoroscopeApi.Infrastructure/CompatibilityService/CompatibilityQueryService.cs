@@ -1,4 +1,3 @@
-using Hermes.Responses;
 using HoroscopeApi.Application.Infrastructure.Caching;
 using HoroscopeApi.Application.Infrastructure.Persistance;
 using HoroscopeApi.Application.Models;
@@ -22,7 +21,7 @@ internal sealed class CompatibilityQueryService(
 {
     private static readonly TimeSpan CacheTtl = TimeSpan.FromHours(24);
 
-    public async Task<Result<Response<CompatibilityData>>> GetOrGenerateCompatibilityAsync(
+    public async Task<Result<(CompatibilityData Data, bool IsCached)>> GetOrGenerateCompatibilityAsync(
         ZodiacSign firstSign,
         ZodiacSign secondSign,
         CancellationToken cancellationToken)
@@ -30,15 +29,12 @@ internal sealed class CompatibilityQueryService(
         // Normalize pair: lower enum value first
         (ZodiacSign normalizedFirst, ZodiacSign normalizedSecond) = NormalizeSignPair(firstSign, secondSign);
 
-        Dictionary<string, string?> attributes = new() { { "cached", "false" } };
-
         // Try cache first
         string cacheKey = $"compatibility:{normalizedFirst}:{normalizedSecond}";
         CompatibilityData? cachedData = await cache.GetAsync<CompatibilityData>(cacheKey, cancellationToken);
         if (cachedData is not null)
         {
-            attributes["cached"] = "true";
-            return Result.Ok(Response<CompatibilityData>.Create(cachedData, attributes));
+            return Result.Ok((cachedData, true));
         }
 
         // Fetch zodiac sign info for both signs
@@ -49,12 +45,12 @@ internal sealed class CompatibilityQueryService(
 
         if (firstSignInfo is null)
         {
-            return Result.Ko<Response<CompatibilityData>>(ZodiacSignErrors.NotFound(normalizedFirst));
+            return Result.Ko<(CompatibilityData, bool)>(ZodiacSignErrors.NotFound(normalizedFirst));
         }
 
         if (secondSignInfo is null)
         {
-            return Result.Ko<Response<CompatibilityData>>(ZodiacSignErrors.NotFound(normalizedSecond));
+            return Result.Ko<(CompatibilityData, bool)>(ZodiacSignErrors.NotFound(normalizedSecond));
         }
 
         // Try database
@@ -72,7 +68,7 @@ internal sealed class CompatibilityQueryService(
                 logger.LogError(
                     "Failed to generate compatibility for signs {FirstSign} and {SecondSign}: {@Errors}",
                     normalizedFirst, normalizedSecond, generateResult.Errors);
-                return Result.Ko<Response<CompatibilityData>>(CompatibilityErrors.NotFound);
+                return Result.Ko<(CompatibilityData, bool)>(CompatibilityErrors.NotFound);
             }
 
             compatibility = generateResult.Value!;
@@ -82,7 +78,7 @@ internal sealed class CompatibilityQueryService(
 
         await cache.SetAsync(cacheKey, data, CacheTtl, cancellationToken);
 
-        return Result.Ok(Response<CompatibilityData>.Create(data, attributes));
+        return Result.Ok((data, false));
     }
 
     private async Task<Result<Compatibility?>> GenerateCompatibilityUsingAiAsync(

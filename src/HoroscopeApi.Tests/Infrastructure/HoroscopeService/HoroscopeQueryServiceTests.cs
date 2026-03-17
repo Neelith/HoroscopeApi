@@ -1,3 +1,4 @@
+using System.Reflection;
 using HoroscopeApi.Application.Infrastructure.Caching;
 using HoroscopeApi.Application.Infrastructure.Persistance;
 using HoroscopeApi.Application.Models;
@@ -11,11 +12,11 @@ namespace HoroscopeApi.Tests.Infrastructure.HoroscopeService;
 
 public sealed class HoroscopeQueryServiceTests
 {
-    private readonly ILogger<HoroscopeQueryService> _logger = NullLogger<HoroscopeQueryService>.Instance;
-    private readonly Mock<IHoroscopeRepository> _horoscopeRepoMock = new();
-    private readonly Mock<IHoroscopeGeneratorService> _generatorMock = new();
-    private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
     private readonly Mock<IRedisCache> _cacheMock = new();
+    private readonly Mock<IHoroscopeGeneratorService> _generatorMock = new();
+    private readonly Mock<IHoroscopeRepository> _horoscopeRepoMock = new();
+    private readonly ILogger<HoroscopeQueryService> _logger = NullLogger<HoroscopeQueryService>.Instance;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
 
     private HoroscopeQueryService CreateService() =>
         new(_logger, _horoscopeRepoMock.Object, _generatorMock.Object,
@@ -37,7 +38,7 @@ public sealed class HoroscopeQueryServiceTests
 
         typeof(Horoscope)
             .GetProperty("ZodiacSignInfo",
-                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)!
+                BindingFlags.Public | BindingFlags.Instance)!
             .SetValue(horoscope, signInfo);
 
         return horoscope;
@@ -45,12 +46,16 @@ public sealed class HoroscopeQueryServiceTests
 
     private static HoroscopeData BuildHoroscopeData(DateOnly date) => new()
     {
-        Sign = "aries",
-        SignInfo = new ZodiacSignInfoData
+        ZodiacSign = new ZodiacSignData
         {
-            Name = "Aries", Symbol = "♈", Element = "Fire", Quality = "Cardinal",
-            Polarity = "Positive", RulingPlanet = "Mars",
-            DateRange = "March 21 - April 19", Description = "The pioneer."
+            Name = "Aries",
+            Symbol = "♈",
+            Element = "Fire",
+            Quality = "Cardinal",
+            Polarity = "Positive",
+            RulingPlanet = "Mars",
+            DateRange = "March 21 - April 19",
+            Description = "The pioneer."
         },
         Period = "daily",
         Date = date,
@@ -81,9 +86,8 @@ public sealed class HoroscopeQueryServiceTests
             ZodiacSign.Aries, HoroscopePeriod.Daily, date, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.NotNull(result.Value);
-        Assert.Equal("true", result.Value!.Attributes?["cached"]);
-        Assert.Equal("aries", result.Value.Data.Sign);
+        Assert.True(result.Value.IsCached);
+        Assert.Equal("Aries", result.Value.Data.ZodiacSign.Name);
     }
 
     [Fact]
@@ -121,8 +125,8 @@ public sealed class HoroscopeQueryServiceTests
             ZodiacSign.Aries, HoroscopePeriod.Daily, date, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("false", result.Value!.Attributes?["cached"]);
-        Assert.Equal("aries", result.Value.Data.Sign);
+        Assert.False(result.Value.IsCached);
+        Assert.Equal("Aries", result.Value.Data.ZodiacSign.Name);
     }
 
     [Fact]
@@ -182,7 +186,7 @@ public sealed class HoroscopeQueryServiceTests
             ZodiacSign.Aries, HoroscopePeriod.Daily, date, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.NotNull(result.Value!.Data);
+        Assert.NotNull(result.Value.Data);
     }
 
     [Fact]

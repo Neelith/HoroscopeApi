@@ -22,7 +22,17 @@ internal sealed class GetCompatibilityQueryHandler(
             return Result.Ko<Response<CompatibilityData>>(ZodiacSignErrors.InvalidName);
         }
 
-        return await compatibilityQueryService.GetOrGenerateCompatibilityAsync(
-            firstSign, secondSign, cancellationToken);
+        Result<(CompatibilityData Data, bool IsCached)> serviceResult =
+            await compatibilityQueryService.GetOrGenerateCompatibilityAsync(
+                firstSign, secondSign, cancellationToken);
+
+        if (serviceResult.IsFailure)
+        {
+            return Result.Ko<Response<CompatibilityData>>(serviceResult.Errors);
+        }
+
+        (CompatibilityData data, bool isCached) = serviceResult.Value;
+        Dictionary<string, string?> attributes = new() { { "cached", isCached ? "true" : "false" } };
+        return Result.Ok(Response<CompatibilityData>.Create(data, attributes));
     }
 }

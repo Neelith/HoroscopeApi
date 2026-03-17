@@ -8,7 +8,7 @@ http:
   url: "{{baseUrl}}/compatibilities/:firstSign/:secondSign"
   params:
     - name: secondSign
-      value: leo
+      value: sagittarius
       type: path
     - name: firstSign
       value: capricorn

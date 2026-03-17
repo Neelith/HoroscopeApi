@@ -22,7 +22,17 @@ internal sealed class GetMonthlyHoroscopeQueryHandler(
 
         DateOnly date = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
 
-        return await horoscopeQueryService.GetOrGenerateHoroscopeAsync(
-            zodiacSign, HoroscopePeriod.Monthly, date, cancellationToken);
+        Result<(HoroscopeData Data, bool IsCached)> serviceResult =
+            await horoscopeQueryService.GetOrGenerateHoroscopeAsync(
+                zodiacSign, HoroscopePeriod.Monthly, date, cancellationToken);
+
+        if (serviceResult.IsFailure)
+        {
+            return Result.Ko<Response<HoroscopeData>>(serviceResult.Errors);
+        }
+
+        (HoroscopeData data, bool isCached) = serviceResult.Value;
+        Dictionary<string, string?> attributes = new() { { "cached", isCached ? "true" : "false" } };
+        return Result.Ok(Response<HoroscopeData>.Create(data, attributes));
     }
 }

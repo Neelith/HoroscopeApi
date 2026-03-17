@@ -13,13 +13,12 @@ public sealed class GetCompatibilityQueryHandlerTests
         return new GetCompatibilityQueryHandler(_queryServiceMock.Object);
     }
 
-    private static Response<CompatibilityData> BuildCompatibilityResponse()
+    private static CompatibilityData BuildCompatibilityData()
     {
-        CompatibilityData data = new()
+        return new CompatibilityData
         {
-            FirstSign = "aries",
-            FirstSignInfo =
-                new ZodiacSignInfoData
+            FirstZodiacSign =
+                new ZodiacSignData
                 {
                     Name = "Aries",
                     Symbol = "♈",
@@ -30,8 +29,7 @@ public sealed class GetCompatibilityQueryHandlerTests
                     DateRange = "March 21 - April 19",
                     Description = "The pioneer."
                 },
-            SecondSign = "taurus",
-            SecondSignInfo = new ZodiacSignInfoData
+            SecondZodiacSign = new ZodiacSignData
             {
                 Name = "Taurus",
                 Symbol = "♉",
@@ -45,7 +43,6 @@ public sealed class GetCompatibilityQueryHandlerTests
             Score = 72,
             Description = "A strong and balanced pairing."
         };
-        return Response<CompatibilityData>.Create(data);
     }
 
     [Fact]
@@ -53,15 +50,15 @@ public sealed class GetCompatibilityQueryHandlerTests
     {
         _queryServiceMock.Setup(s => s.GetOrGenerateCompatibilityAsync(
                 ZodiacSign.Aries, ZodiacSign.Taurus, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Ok(BuildCompatibilityResponse()));
+            .ReturnsAsync(Result.Ok((BuildCompatibilityData(), false)));
 
-        Result<Response<CompatibilityData>> result = await CreateHandler().Handle(
+        var result = await CreateHandler().Handle(
             new GetCompatibilityQuery("Aries", "Taurus"), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value!.Data);
-        Assert.Equal("aries", result.Value.Data.FirstSign);
-        Assert.Equal("taurus", result.Value.Data.SecondSign);
+        Assert.Equal("Aries", result.Value.Data.FirstZodiacSign.Name);
+        Assert.Equal("Taurus", result.Value.Data.SecondZodiacSign.Name);
         Assert.Equal(72, result.Value.Data.Score);
     }
 
@@ -70,9 +67,9 @@ public sealed class GetCompatibilityQueryHandlerTests
     {
         _queryServiceMock.Setup(s => s.GetOrGenerateCompatibilityAsync(
                 ZodiacSign.Leo, ZodiacSign.Virgo, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Ok(BuildCompatibilityResponse()));
+            .ReturnsAsync(Result.Ok((BuildCompatibilityData(), false)));
 
-        Result<Response<CompatibilityData>> result = await CreateHandler().Handle(
+        var result = await CreateHandler().Handle(
             new GetCompatibilityQuery("leo", "virgo"), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
@@ -81,7 +78,7 @@ public sealed class GetCompatibilityQueryHandlerTests
     [Fact]
     public async Task Handle_WithInvalidFirstSignName_ReturnsInvalidNameError()
     {
-        Result<Response<CompatibilityData>> result = await CreateHandler().Handle(
+        var result = await CreateHandler().Handle(
             new GetCompatibilityQuery("NotASign", "Aries"), CancellationToken.None);
 
         Assert.True(result.IsFailure);
@@ -91,7 +88,7 @@ public sealed class GetCompatibilityQueryHandlerTests
     [Fact]
     public async Task Handle_WithInvalidSecondSignName_ReturnsInvalidNameError()
     {
-        Result<Response<CompatibilityData>> result = await CreateHandler().Handle(
+        var result = await CreateHandler().Handle(
             new GetCompatibilityQuery("Aries", "NotASign"), CancellationToken.None);
 
         Assert.True(result.IsFailure);
@@ -101,7 +98,7 @@ public sealed class GetCompatibilityQueryHandlerTests
     [Fact]
     public async Task Handle_WithBothInvalidSignNames_ReturnsInvalidNameError()
     {
-        Result<Response<CompatibilityData>> result = await CreateHandler().Handle(
+        var result = await CreateHandler().Handle(
             new GetCompatibilityQuery("Foo", "Bar"), CancellationToken.None);
 
         Assert.True(result.IsFailure);
@@ -113,7 +110,7 @@ public sealed class GetCompatibilityQueryHandlerTests
     {
         _queryServiceMock.Setup(s => s.GetOrGenerateCompatibilityAsync(
                 ZodiacSign.Pisces, ZodiacSign.Scorpio, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Ok(BuildCompatibilityResponse()));
+            .ReturnsAsync(Result.Ok((BuildCompatibilityData(), false)));
 
         await CreateHandler().Handle(
             new GetCompatibilityQuery("Pisces", "Scorpio"), CancellationToken.None);

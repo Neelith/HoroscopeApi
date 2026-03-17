@@ -5,10 +5,8 @@ namespace HoroscopeApi.Application.Models;
 
 public sealed record CompatibilityData
 {
-    public required string FirstSign { get; init; }
-    public required ZodiacSignInfoData FirstSignInfo { get; init; }
-    public required string SecondSign { get; init; }
-    public required ZodiacSignInfoData SecondSignInfo { get; init; }
+    public required ZodiacSignData FirstZodiacSign { get; init; }
+    public required ZodiacSignData SecondZodiacSign { get; init; }
     public required int Score { get; init; }
     public required string Description { get; init; }
 
@@ -19,18 +17,16 @@ public sealed record CompatibilityData
 
         return new CompatibilityData
         {
-            FirstSign = firstSignInfo.Sign.ToString().ToLowerInvariant(),
-            FirstSignInfo = ToSignInfoData(firstSignInfo),
-            SecondSign = secondSignInfo.Sign.ToString().ToLowerInvariant(),
-            SecondSignInfo = ToSignInfoData(secondSignInfo),
+            FirstZodiacSign = ToZodiacSignData(firstSignInfo),
+            SecondZodiacSign = ToZodiacSignData(secondSignInfo),
             Score = compatibility.Score,
             Description = compatibility.Description
         };
     }
 
-    private static ZodiacSignInfoData ToSignInfoData(ZodiacSignInfo signInfo)
+    private static ZodiacSignData ToZodiacSignData(ZodiacSignInfo signInfo)
     {
-        return new ZodiacSignInfoData
+        return new ZodiacSignData
         {
             Name = signInfo.Name,
             Symbol = signInfo.Symbol,

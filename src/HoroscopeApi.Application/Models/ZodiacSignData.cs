@@ -1,6 +1,6 @@
 namespace HoroscopeApi.Application.Models;
 
-public sealed record ZodiacSignInfoData
+public sealed record ZodiacSignData
 {
     public required string Name { get; init; }
     public required string Symbol { get; init; }

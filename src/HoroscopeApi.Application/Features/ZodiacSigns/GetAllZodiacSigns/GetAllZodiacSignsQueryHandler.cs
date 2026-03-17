@@ -5,15 +5,15 @@ using HoroscopeApi.Domain.ZodiacSigns.Repositories;
 namespace HoroscopeApi.Application.Features.ZodiacSigns.GetAllZodiacSigns;
 
 internal sealed class GetAllZodiacSignsQueryHandler(IZodiacSignRepository repository)
-    : IQueryHandler<GetAllZodiacSignsQuery, PagedResponse<ZodiacSignInfoData>>
+    : IQueryHandler<GetAllZodiacSignsQuery, PagedResponse<ZodiacSignData>>
 {
-    public async Task<Result<PagedResponse<ZodiacSignInfoData>>> Handle(
+    public async Task<Result<PagedResponse<ZodiacSignData>>> Handle(
         GetAllZodiacSignsQuery query,
         CancellationToken cancellationToken)
     {
         List<ZodiacSignInfo> zodiacSigns = await repository.GetAllAsync(cancellationToken);
 
-        List<ZodiacSignInfoData> dataList = zodiacSigns.Select(z => new ZodiacSignInfoData
+        List<ZodiacSignData> dataList = zodiacSigns.Select(z => new ZodiacSignData
         {
             Name = z.Name,
             Symbol = z.Symbol,
@@ -25,7 +25,7 @@ internal sealed class GetAllZodiacSignsQueryHandler(IZodiacSignRepository reposi
             Description = z.Description
         }).ToList();
 
-        PagedResponse<ZodiacSignInfoData> response = PagedResponse<ZodiacSignInfoData>.Create(dataList, dataList.Count);
+        PagedResponse<ZodiacSignData> response = PagedResponse<ZodiacSignData>.Create(dataList, dataList.Count);
         return Result.Ok(response);
     }
 

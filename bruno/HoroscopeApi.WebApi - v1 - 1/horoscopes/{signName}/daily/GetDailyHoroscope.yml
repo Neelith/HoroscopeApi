@@ -10,7 +10,7 @@ http:
   url: "{{baseUrl}}/horoscopes/:signName/daily"
   params:
     - name: signName
-      value: capricorn
+      value: sagittarius
       type: path
   auth: inherit
 

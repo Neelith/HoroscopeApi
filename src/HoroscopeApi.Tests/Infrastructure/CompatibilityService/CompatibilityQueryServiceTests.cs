@@ -82,9 +82,8 @@ public sealed class CompatibilityQueryServiceTests
     {
         return new CompatibilityData
         {
-            FirstSign = "aries",
-            FirstSignInfo =
-                new ZodiacSignInfoData
+            FirstZodiacSign =
+                new ZodiacSignData
                 {
                     Name = "Aries",
                     Symbol = "♈",
@@ -95,8 +94,7 @@ public sealed class CompatibilityQueryServiceTests
                     DateRange = "March 21 - April 19",
                     Description = "The pioneer."
                 },
-            SecondSign = "taurus",
-            SecondSignInfo = new ZodiacSignInfoData
+            SecondZodiacSign = new ZodiacSignData
             {
                 Name = "Taurus",
                 Symbol = "♉",
@@ -133,13 +131,12 @@ public sealed class CompatibilityQueryServiceTests
             .ReturnsAsync(cachedData);
 
         CompatibilityQueryService service = CreateService();
-        Result<Response<CompatibilityData>> result = await service.GetOrGenerateCompatibilityAsync(
+        var result = await service.GetOrGenerateCompatibilityAsync(
             ZodiacSign.Aries, ZodiacSign.Taurus, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.NotNull(result.Value);
-        Assert.Equal("true", result.Value!.Attributes?["cached"]);
-        Assert.Equal("aries", result.Value.Data.FirstSign);
+        Assert.True(result.Value.IsCached);
+        Assert.Equal("Aries", result.Value.Data.FirstZodiacSign.Name);
     }
 
     [Fact]
@@ -174,12 +171,12 @@ public sealed class CompatibilityQueryServiceTests
             .Returns(Task.CompletedTask);
 
         CompatibilityQueryService service = CreateService();
-        Result<Response<CompatibilityData>> result = await service.GetOrGenerateCompatibilityAsync(
+        var result = await service.GetOrGenerateCompatibilityAsync(
             ZodiacSign.Aries, ZodiacSign.Taurus, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("false", result.Value!.Attributes?["cached"]);
-        Assert.Equal("aries", result.Value.Data.FirstSign);
+        Assert.False(result.Value.IsCached);
+        Assert.Equal("Aries", result.Value.Data.FirstZodiacSign.Name);
     }
 
     [Fact]
@@ -240,11 +237,11 @@ public sealed class CompatibilityQueryServiceTests
             .Returns(Task.CompletedTask);
 
         CompatibilityQueryService service = CreateService();
-        Result<Response<CompatibilityData>> result = await service.GetOrGenerateCompatibilityAsync(
+        var result = await service.GetOrGenerateCompatibilityAsync(
             ZodiacSign.Aries, ZodiacSign.Taurus, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.NotNull(result.Value!.Data);
+        Assert.NotNull(result.Value.Data);
     }
 
     [Fact]
@@ -264,7 +261,7 @@ public sealed class CompatibilityQueryServiceTests
             .ReturnsAsync(Result.Ko<HuggingFaceCompatibilityData>(CompatibilityErrors.NotFound));
 
         CompatibilityQueryService service = CreateService();
-        Result<Response<CompatibilityData>> result = await service.GetOrGenerateCompatibilityAsync(
+        var result = await service.GetOrGenerateCompatibilityAsync(
             ZodiacSign.Aries, ZodiacSign.Taurus, CancellationToken.None);
 
         Assert.True(result.IsFailure);
@@ -299,7 +296,7 @@ public sealed class CompatibilityQueryServiceTests
             .ReturnsAsync((ZodiacSignInfo?)null);
 
         CompatibilityQueryService service = CreateService();
-        Result<Response<CompatibilityData>> result = await service.GetOrGenerateCompatibilityAsync(
+        var result = await service.GetOrGenerateCompatibilityAsync(
             ZodiacSign.Aries, ZodiacSign.Taurus, CancellationToken.None);
 
         Assert.True(result.IsFailure);
