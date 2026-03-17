@@ -3,7 +3,6 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using HoroscopeApi.Application.Services.AI;
-using HoroscopeApi.Domain.Constants;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -32,7 +31,8 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
         GenerateHoroscopeRequest request,
         CancellationToken cancellationToken = default)
     {
-        List<ChatMessage> messages = await _promptBuilder.BuildMessageAsync(request.Date, request.SignInfo, cancellationToken);
+        List<ChatMessage> messages =
+            await _promptBuilder.BuildMessageAsync(request.Date, request.SignInfo, cancellationToken);
         return await GenerateWithMessages(messages, cancellationToken);
     }
 
@@ -121,6 +121,121 @@ public sealed class HuggingFaceClient : IHuggingFaceClient
         {
             return Result.Ko<HuggingFaceHoroscopeData>(AiErrors.GenerationFailed);
         }
+    }
+
+    public async Task<Result<HuggingFaceCompatibilityData>> GenerateCompatibilityWithMessages(
+        List<ChatMessage> messages,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var apiRequest = new
+            {
+                messages,
+                temperature = _settings.Temperature,
+                model = _settings.Model,
+                stream = false,
+                response_format = new { type = "json_object" }
+            };
+
+            string requestUri = $"{_settings.ApiUrl}/v1/chat/completions";
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
+
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(
+                requestUri,
+                apiRequest,
+                CancellationToken.None);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return MapCompatibilityHttpError(response.StatusCode);
+            }
+
+            ChatCompletionResponse? apiResponse = await response.Content.ReadFromJsonAsync<ChatCompletionResponse>(
+                CancellationToken.None);
+
+            if (apiResponse?.Choices == null || apiResponse.Choices.Count == 0)
+            {
+                return Result.Ko<HuggingFaceCompatibilityData>(AiErrors.InvalidResponse);
+            }
+
+            string generatedText = apiResponse.Choices[0].Message.Content.Trim();
+
+            // Try to extract JSON if wrapped in markdown code blocks (safety fallback)
+            if (generatedText.StartsWith("```"))
+            {
+                string[] lines = generatedText.Split('\n');
+                generatedText = string.Join('\n', lines.Skip(1).SkipLast(1));
+            }
+
+            // Remove any "json" prefix after code block marker
+            if (generatedText.StartsWith("json"))
+            {
+                generatedText = generatedText.Substring(4).TrimStart();
+            }
+
+            _logger.LogDebug("Raw AI compatibility response: {Response}", generatedText);
+
+            HuggingFaceCompatibilityData? compatibilityData = JsonSerializer.Deserialize<HuggingFaceCompatibilityData>(
+                generatedText,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (compatibilityData == null)
+            {
+                _logger.LogError("Failed to deserialize AI compatibility response. Raw response: {Response}",
+                    generatedText);
+                return Result.Ko<HuggingFaceCompatibilityData>(AiErrors.InvalidResponse);
+            }
+
+            if (!ValidateCompatibilityResponse(compatibilityData))
+            {
+                _logger.LogError("AI compatibility response validation failed. Deserialized data: {@CompatibilityData}",
+                    compatibilityData);
+                return Result.Ko<HuggingFaceCompatibilityData>(AiErrors.InvalidResponse);
+            }
+
+            return Result.Ok(compatibilityData);
+        }
+        catch (OperationCanceledException)
+        {
+            return Result.Ko<HuggingFaceCompatibilityData>(AiErrors.Timeout);
+        }
+        catch (JsonException)
+        {
+            return Result.Ko<HuggingFaceCompatibilityData>(AiErrors.InvalidResponse);
+        }
+        catch
+        {
+            return Result.Ko<HuggingFaceCompatibilityData>(AiErrors.GenerationFailed);
+        }
+    }
+
+    private static Result<HuggingFaceCompatibilityData> MapCompatibilityHttpError(HttpStatusCode statusCode)
+    {
+        return statusCode switch
+        {
+            HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden =>
+                Result.Ko<HuggingFaceCompatibilityData>(AiErrors.InvalidApiKey),
+            HttpStatusCode.TooManyRequests =>
+                Result.Ko<HuggingFaceCompatibilityData>(AiErrors.RateLimitExceeded),
+            HttpStatusCode.ServiceUnavailable =>
+                Result.Ko<HuggingFaceCompatibilityData>(AiErrors.ModelLoading),
+            _ => Result.Ko<HuggingFaceCompatibilityData>(AiErrors.GenerationFailed)
+        };
+    }
+
+    private static bool ValidateCompatibilityResponse(HuggingFaceCompatibilityData compatibility)
+    {
+        if (string.IsNullOrWhiteSpace(compatibility.FirstSign) ||
+            string.IsNullOrWhiteSpace(compatibility.SecondSign) ||
+            string.IsNullOrWhiteSpace(compatibility.Description) ||
+            compatibility.Score < 0 || compatibility.Score > 100)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private static Result<HuggingFaceHoroscopeData> MapHttpError(HttpStatusCode statusCode)

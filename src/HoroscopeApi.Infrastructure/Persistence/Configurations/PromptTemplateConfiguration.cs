@@ -1,20 +1,20 @@
-using HoroscopeApi.Domain.Horoscopes;
+using HoroscopeApi.Domain.Prompts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace HoroscopeApi.Infrastructure.Persistence.Configurations;
 
-internal sealed class HoroscopePromptTemplateConfiguration : IEntityTypeConfiguration<HoroscopePromptTemplate>
+internal sealed class PromptTemplateConfiguration : IEntityTypeConfiguration<PromptTemplate>
 {
-    public void Configure(EntityTypeBuilder<HoroscopePromptTemplate> builder)
+    public void Configure(EntityTypeBuilder<PromptTemplate> builder)
     {
         builder.ConfigureAuditableEntity();
 
-        builder.ToTable("HoroscopePromptTemplates");
+        builder.ToTable("PromptTemplates");
 
         builder.HasKey(t => t.Id);
 
-        builder.Property(t => t.Period)
+        builder.Property(t => t.Type)
             .IsRequired()
             .HasConversion<int>();
 
@@ -28,7 +28,7 @@ internal sealed class HoroscopePromptTemplateConfiguration : IEntityTypeConfigur
         builder.Property(t => t.UserPromptTemplate)
             .IsRequired();
 
-        builder.HasIndex(t => t.Period).IsUnique();
+        builder.HasIndex(t => t.Type).IsUnique();
 
         builder.HasQueryFilter(t => !t.Deleted);
     }

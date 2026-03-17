@@ -9,4 +9,8 @@ public interface IHuggingFaceClient
     Task<Result<HuggingFaceHoroscopeData>> GenerateWithMessages(
         List<ChatMessage> messages,
         CancellationToken cancellationToken = default);
+
+    Task<Result<HuggingFaceCompatibilityData>> GenerateCompatibilityWithMessages(
+        List<ChatMessage> messages,
+        CancellationToken cancellationToken = default);
 }

@@ -1,12 +1,12 @@
 using System.Text.Json;
 using HoroscopeApi.Application.Services.AI;
-using HoroscopeApi.Domain.Horoscopes;
-using HoroscopeApi.Domain.Horoscopes.Repositories;
+using HoroscopeApi.Domain.Prompts;
+using HoroscopeApi.Domain.Prompts.Repositories;
 using HoroscopeApi.Domain.ZodiacSigns;
 
 namespace HoroscopeApi.Infrastructure.AI;
 
-public sealed class HoroscopePromptBuilder(IHoroscopePromptTemplateRepository promptTemplateRepository)
+public sealed class HoroscopePromptBuilder(IPromptTemplateRepository promptTemplateRepository)
     : IHoroscopePromptBuilder
 {
     public async Task<List<ChatMessage>> BuildMessageAsync(
@@ -14,16 +14,17 @@ public sealed class HoroscopePromptBuilder(IHoroscopePromptTemplateRepository pr
         ZodiacSignInfo zodiacSignInfo,
         CancellationToken cancellationToken = default)
     {
-        HoroscopePromptTemplate template = await GetTemplateOrThrowAsync(HoroscopePeriod.Daily, cancellationToken);
-        return BuildMessages(template, zodiacSignInfo, new Dictionary<string, string>
-        {
-            { "signName", zodiacSignInfo.Name.ToLowerInvariant() },
-            { "date", date.ToString("yyyy-MM-dd") },
-            { "element", zodiacSignInfo.Element.ToString() },
-            { "quality", zodiacSignInfo.Quality.ToString() },
-            { "rulingPlanet", zodiacSignInfo.RulingPlanet },
-            { "description", zodiacSignInfo.Description }
-        });
+        PromptTemplate template = await GetTemplateOrThrowAsync(PromptType.Daily, cancellationToken);
+        return BuildMessages(template,
+            new Dictionary<string, string>
+            {
+                { "signName", zodiacSignInfo.Name.ToLowerInvariant() },
+                { "date", date.ToString("yyyy-MM-dd") },
+                { "element", zodiacSignInfo.Element.ToString() },
+                { "quality", zodiacSignInfo.Quality.ToString() },
+                { "rulingPlanet", zodiacSignInfo.RulingPlanet },
+                { "description", zodiacSignInfo.Description }
+            });
     }
 
     public async Task<List<ChatMessage>> BuildWeeklyMessageAsync(
@@ -31,16 +32,17 @@ public sealed class HoroscopePromptBuilder(IHoroscopePromptTemplateRepository pr
         ZodiacSignInfo zodiacSignInfo,
         CancellationToken cancellationToken = default)
     {
-        HoroscopePromptTemplate template = await GetTemplateOrThrowAsync(HoroscopePeriod.Weekly, cancellationToken);
-        return BuildMessages(template, zodiacSignInfo, new Dictionary<string, string>
-        {
-            { "signName", zodiacSignInfo.Name.ToLowerInvariant() },
-            { "date", date.ToString("yyyy-MM-dd") },
-            { "element", zodiacSignInfo.Element.ToString() },
-            { "quality", zodiacSignInfo.Quality.ToString() },
-            { "rulingPlanet", zodiacSignInfo.RulingPlanet },
-            { "description", zodiacSignInfo.Description }
-        });
+        PromptTemplate template = await GetTemplateOrThrowAsync(PromptType.Weekly, cancellationToken);
+        return BuildMessages(template,
+            new Dictionary<string, string>
+            {
+                { "signName", zodiacSignInfo.Name.ToLowerInvariant() },
+                { "date", date.ToString("yyyy-MM-dd") },
+                { "element", zodiacSignInfo.Element.ToString() },
+                { "quality", zodiacSignInfo.Quality.ToString() },
+                { "rulingPlanet", zodiacSignInfo.RulingPlanet },
+                { "description", zodiacSignInfo.Description }
+            });
     }
 
     public async Task<List<ChatMessage>> BuildMonthlyMessageAsync(
@@ -48,20 +50,21 @@ public sealed class HoroscopePromptBuilder(IHoroscopePromptTemplateRepository pr
         ZodiacSignInfo zodiacSignInfo,
         CancellationToken cancellationToken = default)
     {
-        HoroscopePromptTemplate template = await GetTemplateOrThrowAsync(HoroscopePeriod.Monthly, cancellationToken);
+        PromptTemplate template = await GetTemplateOrThrowAsync(PromptType.Monthly, cancellationToken);
         string monthName = date.ToString("MMMM");
         int year = date.Year;
-        return BuildMessages(template, zodiacSignInfo, new Dictionary<string, string>
-        {
-            { "signName", zodiacSignInfo.Name.ToLowerInvariant() },
-            { "date", date.ToString("yyyy-MM-dd") },
-            { "monthName", monthName },
-            { "year", year.ToString() },
-            { "element", zodiacSignInfo.Element.ToString() },
-            { "quality", zodiacSignInfo.Quality.ToString() },
-            { "rulingPlanet", zodiacSignInfo.RulingPlanet },
-            { "description", zodiacSignInfo.Description }
-        });
+        return BuildMessages(template,
+            new Dictionary<string, string>
+            {
+                { "signName", zodiacSignInfo.Name.ToLowerInvariant() },
+                { "date", date.ToString("yyyy-MM-dd") },
+                { "monthName", monthName },
+                { "year", year.ToString() },
+                { "element", zodiacSignInfo.Element.ToString() },
+                { "quality", zodiacSignInfo.Quality.ToString() },
+                { "rulingPlanet", zodiacSignInfo.RulingPlanet },
+                { "description", zodiacSignInfo.Description }
+            });
     }
 
     public async Task<List<ChatMessage>> BuildYearlyMessageAsync(
@@ -69,37 +72,37 @@ public sealed class HoroscopePromptBuilder(IHoroscopePromptTemplateRepository pr
         ZodiacSignInfo zodiacSignInfo,
         CancellationToken cancellationToken = default)
     {
-        HoroscopePromptTemplate template = await GetTemplateOrThrowAsync(HoroscopePeriod.Yearly, cancellationToken);
-        return BuildMessages(template, zodiacSignInfo, new Dictionary<string, string>
-        {
-            { "signName", zodiacSignInfo.Name.ToLowerInvariant() },
-            { "year", year.ToString() },
-            { "element", zodiacSignInfo.Element.ToString() },
-            { "quality", zodiacSignInfo.Quality.ToString() },
-            { "rulingPlanet", zodiacSignInfo.RulingPlanet },
-            { "description", zodiacSignInfo.Description }
-        });
+        PromptTemplate template = await GetTemplateOrThrowAsync(PromptType.Yearly, cancellationToken);
+        return BuildMessages(template,
+            new Dictionary<string, string>
+            {
+                { "signName", zodiacSignInfo.Name.ToLowerInvariant() },
+                { "year", year.ToString() },
+                { "element", zodiacSignInfo.Element.ToString() },
+                { "quality", zodiacSignInfo.Quality.ToString() },
+                { "rulingPlanet", zodiacSignInfo.RulingPlanet },
+                { "description", zodiacSignInfo.Description }
+            });
     }
 
-    private async Task<HoroscopePromptTemplate> GetTemplateOrThrowAsync(
-        HoroscopePeriod period,
+    private async Task<PromptTemplate> GetTemplateOrThrowAsync(
+        PromptType type,
         CancellationToken cancellationToken)
     {
-        HoroscopePromptTemplate? template =
-            await promptTemplateRepository.GetByPeriodAsync(period, cancellationToken);
+        PromptTemplate? template =
+            await promptTemplateRepository.GetByTypeAsync(type, cancellationToken);
 
         if (template is null)
         {
             throw new InvalidOperationException(
-                $"No prompt template found for period '{period}'. Ensure the database has been seeded.");
+                $"No prompt template found for type '{type}'. Ensure the database has been seeded.");
         }
 
         return template;
     }
 
     private static List<ChatMessage> BuildMessages(
-        HoroscopePromptTemplate template,
-        ZodiacSignInfo zodiacSignInfo,
+        PromptTemplate template,
         Dictionary<string, string> placeholders)
     {
         List<ChatMessage> messages = new();

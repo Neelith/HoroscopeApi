@@ -5,6 +5,7 @@ global using Hermes.Responses;
 global using HoroscopeApi.Domain.ZodiacSigns;
 global using HoroscopeApi.Domain.Horoscopes;
 global using HoroscopeApi.Domain.ApiKeys;
+global using HoroscopeApi.Domain.Prompts;
 global using System.Collections.Generic;
 global using System.Threading;
 global using System.Threading.Tasks;

@@ -1,0 +1,22 @@
+info:
+  name: compatibilities
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/compatibilities/:firstSign/:secondSign"
+  params:
+    - name: secondSign
+      value: leo
+      type: path
+    - name: firstSign
+      value: capricorn
+      type: path
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

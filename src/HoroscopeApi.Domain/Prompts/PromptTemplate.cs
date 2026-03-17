@@ -1,47 +1,47 @@
 using HoroscopeApi.Domain.Shared;
 
-namespace HoroscopeApi.Domain.Horoscopes;
+namespace HoroscopeApi.Domain.Prompts;
 
-public sealed class HoroscopePromptTemplate : AuditableEntity
+public sealed class PromptTemplate : AuditableEntity
 {
     // EF constructor
-    private HoroscopePromptTemplate() { }
+    private PromptTemplate() { }
 
-    private HoroscopePromptTemplate(
-        HoroscopePeriod period,
+    private PromptTemplate(
+        PromptType type,
         string systemPrompt,
         string fewShotExamples,
         string userPromptTemplate)
     {
-        Period = period;
+        Type = type;
         SystemPrompt = systemPrompt;
         FewShotExamples = fewShotExamples;
         UserPromptTemplate = userPromptTemplate;
     }
 
     public int Id { get; private set; }
-    public HoroscopePeriod Period { get; private set; }
+    public PromptType Type { get; private set; }
     public string SystemPrompt { get; private set; } = string.Empty;
     public string FewShotExamples { get; private set; } = string.Empty;
     public string UserPromptTemplate { get; private set; } = string.Empty;
 
-    public static Result<HoroscopePromptTemplate> Create(
-        HoroscopePeriod period,
+    public static Result<PromptTemplate> Create(
+        PromptType type,
         string systemPrompt,
         string fewShotExamples,
         string userPromptTemplate)
     {
         if (string.IsNullOrWhiteSpace(systemPrompt))
         {
-            return Result.Ko<HoroscopePromptTemplate>(HoroscopeErrors.InvalidPromptTemplate);
+            return Result.Ko<PromptTemplate>(PromptTemplateErrors.InvalidPromptTemplate);
         }
 
         if (string.IsNullOrWhiteSpace(userPromptTemplate))
         {
-            return Result.Ko<HoroscopePromptTemplate>(HoroscopeErrors.InvalidPromptTemplate);
+            return Result.Ko<PromptTemplate>(PromptTemplateErrors.InvalidPromptTemplate);
         }
 
-        HoroscopePromptTemplate template = new(period, systemPrompt, fewShotExamples, userPromptTemplate);
+        PromptTemplate template = new(type, systemPrompt, fewShotExamples, userPromptTemplate);
         return Result.Ok(template);
     }
 }

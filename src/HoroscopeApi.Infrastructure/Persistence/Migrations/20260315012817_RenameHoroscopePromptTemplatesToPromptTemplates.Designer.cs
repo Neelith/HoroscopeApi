@@ -3,17 +3,20 @@ using System;
 using HoroscopeApi.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace HoroscopeApi.Infrastructure.Migrations
+namespace HoroscopeApi.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260315012817_RenameHoroscopePromptTemplatesToPromptTemplates")]
+    partial class RenameHoroscopePromptTemplatesToPromptTemplates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -153,59 +156,6 @@ namespace HoroscopeApi.Infrastructure.Migrations
                     b.HasIndex("Name");
 
                     b.ToTable("ApiKeyScopes", (string)null);
-                });
-
-            modelBuilder.Entity("HoroscopeApi.Domain.Compatibilities.Compatibility", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text")
-                        .HasDefaultValue("");
-
-                    b.Property<bool>("Deleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("FirstZodiacSignId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Score")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("SecondZodiacSignId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("UpdatedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SecondZodiacSignId");
-
-                    b.HasIndex("FirstZodiacSignId", "SecondZodiacSignId")
-                        .IsUnique();
-
-                    b.ToTable("Compatibilities", (string)null);
                 });
 
             modelBuilder.Entity("HoroscopeApi.Domain.Horoscopes.Horoscope", b =>
@@ -410,25 +360,6 @@ namespace HoroscopeApi.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("ApiKey");
-                });
-
-            modelBuilder.Entity("HoroscopeApi.Domain.Compatibilities.Compatibility", b =>
-                {
-                    b.HasOne("HoroscopeApi.Domain.ZodiacSigns.ZodiacSignInfo", "FirstZodiacSignInfo")
-                        .WithMany()
-                        .HasForeignKey("FirstZodiacSignId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("HoroscopeApi.Domain.ZodiacSigns.ZodiacSignInfo", "SecondZodiacSignInfo")
-                        .WithMany()
-                        .HasForeignKey("SecondZodiacSignId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("FirstZodiacSignInfo");
-
-                    b.Navigation("SecondZodiacSignInfo");
                 });
 
             modelBuilder.Entity("HoroscopeApi.Domain.Horoscopes.Horoscope", b =>

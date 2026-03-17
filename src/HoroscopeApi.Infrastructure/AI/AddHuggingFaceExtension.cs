@@ -1,4 +1,5 @@
 using HoroscopeApi.Application.Services.AI;
+using HoroscopeApi.Application.Services.CompatibilityService;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,9 +18,13 @@ public static class AddHuggingFaceExtension
         // Register HttpClient for HuggingFaceClient
         services.AddHttpClient<IHuggingFaceClient, HuggingFaceClient>();
 
-        // Register services
+        // Register horoscope services
         services.AddScoped<IHoroscopePromptBuilder, HoroscopePromptBuilder>();
         services.AddScoped<IHoroscopeGeneratorService, HoroscopeGeneratorService>();
+
+        // Register compatibility services
+        services.AddScoped<ICompatibilityPromptBuilder, CompatibilityPromptBuilder>();
+        services.AddScoped<ICompatibilityGeneratorService, CompatibilityGeneratorService>();
 
         return services;
     }

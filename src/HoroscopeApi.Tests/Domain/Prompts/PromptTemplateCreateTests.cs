@@ -1,19 +1,19 @@
-namespace HoroscopeApi.Tests.Domain.Horoscopes;
+namespace HoroscopeApi.Tests.Domain.Prompts;
 
-public sealed class HoroscopePromptTemplateCreateTests
+public sealed class PromptTemplateCreateTests
 {
     [Fact]
     public void Create_WithValidData_ReturnsSuccess()
     {
-        var result = HoroscopePromptTemplate.Create(
-            HoroscopePeriod.Daily,
+        Result<PromptTemplate> result = PromptTemplate.Create(
+            PromptType.Daily,
             "You are an astrologer.",
             "Example 1: ...",
             "Generate a horoscope for {sign}.");
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
-        Assert.Equal(HoroscopePeriod.Daily, result.Value!.Period);
+        Assert.Equal(PromptType.Daily, result.Value!.Type);
         Assert.Equal("You are an astrologer.", result.Value.SystemPrompt);
         Assert.Equal("Generate a horoscope for {sign}.", result.Value.UserPromptTemplate);
     }
@@ -23,14 +23,14 @@ public sealed class HoroscopePromptTemplateCreateTests
     [InlineData("   ")]
     public void Create_WithEmptySystemPrompt_ReturnsFailure(string systemPrompt)
     {
-        var result = HoroscopePromptTemplate.Create(
-            HoroscopePeriod.Daily,
+        Result<PromptTemplate> result = PromptTemplate.Create(
+            PromptType.Daily,
             systemPrompt,
             "examples",
             "user template");
 
         Assert.True(result.IsFailure);
-        Assert.Equal("Horoscope.InvalidPromptTemplate", result.Errors[0].Code);
+        Assert.Equal("PromptTemplate.InvalidPromptTemplate", result.Errors[0].Code);
     }
 
     [Theory]
@@ -38,21 +38,21 @@ public sealed class HoroscopePromptTemplateCreateTests
     [InlineData("   ")]
     public void Create_WithEmptyUserPromptTemplate_ReturnsFailure(string userPromptTemplate)
     {
-        var result = HoroscopePromptTemplate.Create(
-            HoroscopePeriod.Weekly,
+        Result<PromptTemplate> result = PromptTemplate.Create(
+            PromptType.Weekly,
             "Valid system prompt",
             "examples",
             userPromptTemplate);
 
         Assert.True(result.IsFailure);
-        Assert.Equal("Horoscope.InvalidPromptTemplate", result.Errors[0].Code);
+        Assert.Equal("PromptTemplate.InvalidPromptTemplate", result.Errors[0].Code);
     }
 
     [Fact]
     public void Create_WithEmptyFewShotExamples_ReturnsSuccess()
     {
-        var result = HoroscopePromptTemplate.Create(
-            HoroscopePeriod.Monthly,
+        Result<PromptTemplate> result = PromptTemplate.Create(
+            PromptType.Monthly,
             "System prompt",
             "",
             "User template");
@@ -62,19 +62,20 @@ public sealed class HoroscopePromptTemplateCreateTests
     }
 
     [Theory]
-    [InlineData(HoroscopePeriod.Daily)]
-    [InlineData(HoroscopePeriod.Weekly)]
-    [InlineData(HoroscopePeriod.Monthly)]
-    [InlineData(HoroscopePeriod.Yearly)]
-    public void Create_WithAllPeriods_ReturnsSuccess(HoroscopePeriod period)
+    [InlineData(PromptType.Daily)]
+    [InlineData(PromptType.Weekly)]
+    [InlineData(PromptType.Monthly)]
+    [InlineData(PromptType.Yearly)]
+    [InlineData(PromptType.Compatibility)]
+    public void Create_WithAllTypes_ReturnsSuccess(PromptType type)
     {
-        var result = HoroscopePromptTemplate.Create(
-            period,
+        Result<PromptTemplate> result = PromptTemplate.Create(
+            type,
             "System prompt",
             "Examples",
             "User template");
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(period, result.Value!.Period);
+        Assert.Equal(type, result.Value!.Type);
     }
 }

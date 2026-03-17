@@ -1,6 +1,8 @@
-﻿using HoroscopeApi.Application.Services.HoroscopeService;
+﻿using HoroscopeApi.Application.Services.CompatibilityService;
+using HoroscopeApi.Application.Services.HoroscopeService;
 using HoroscopeApi.Infrastructure.ApiKey;
 using HoroscopeApi.Infrastructure.Caching;
+using HoroscopeApi.Infrastructure.CompatibilityService;
 using HoroscopeApi.Infrastructure.HoroscopeService;
 using HoroscopeApi.Infrastructure.Persistence;
 using HoroscopeApi.Infrastructure.Persistence.Repositories;
@@ -28,7 +30,8 @@ public static class DependencyInjection
             .AddRedis(redisSettings, logger)
             .AddCurrentUserService()
             .AddApiKeyServices()
-            .AddScoped<IHoroscopeQueryService, HoroscopeQueryService>();
+            .AddScoped<IHoroscopeQueryService, HoroscopeQueryService>()
+            .AddScoped<ICompatibilityQueryService, CompatibilityQueryService>();
 
         return services;
     }

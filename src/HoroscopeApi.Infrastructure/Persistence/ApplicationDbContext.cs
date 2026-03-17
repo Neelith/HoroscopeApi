@@ -3,7 +3,9 @@ using HoroscopeApi.Application.Infrastructure.Persistance;
 using HoroscopeApi.Application.Infrastructure.User;
 using HoroscopeApi.Application.Services.Time;
 using HoroscopeApi.Domain.ApiKeys;
+using HoroscopeApi.Domain.Compatibilities;
 using HoroscopeApi.Domain.Horoscopes;
+using HoroscopeApi.Domain.Prompts;
 using HoroscopeApi.Domain.Shared;
 using HoroscopeApi.Domain.ZodiacSigns;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +21,8 @@ internal class ApplicationDbContext(
 {
     public DbSet<ZodiacSignInfo> ZodiacSigns { get; set; }
     public DbSet<Horoscope> Horoscopes { get; set; }
-    public DbSet<HoroscopePromptTemplate> HoroscopePromptTemplates { get; set; }
+    public DbSet<Compatibility> Compatibilities { get; set; }
+    public DbSet<PromptTemplate> PromptTemplates { get; set; }
     public DbSet<Domain.ApiKeys.ApiKey> ApiKeys { get; set; }
     public DbSet<ApiKeyScope> ApiKeyScopes { get; set; }
 
