@@ -30,6 +30,8 @@ Domain <-- Application <-- Infrastructure <-- WebApi
 - **Unit of Work** pattern (`ApplicationDbContext` implements `IUnitOfWork`)
 - **Minimal API** with Carter endpoint modules (no controllers)
 - **Feature-folder** organization under `Application/Features/`
+- **Rich domain model** with factory methods (`Create`) that return `Result<T>` for validation
+- **Error metadata pattern** — domain errors carry `Metadata` dictionaries with HTTP status codes (`ErrorConsts.ErrorType`), mapped to `ProblemDetails` responses via `ResultExtensions`
 
 ## Build
 
@@ -86,6 +88,19 @@ dotnet test src/src.slnx
   `Tests/Infrastructure/`.
 - Use **xUnit** for test framework, **Moq** for mocking, and **FluentValidation** for validator tests.
 
+### Test Naming Conventions
+
+| Source file                          | Test file naming                               |
+|--------------------------------------|------------------------------------------------|
+| Domain entity `Create` method        | `{Entity}CreateTests.cs`                       |
+| Domain entity behavior method        | `{Entity}{MethodName}Tests.cs`                 |
+| Application query/command handler    | `{Method}{Resource}QueryHandlerTests.cs`       |
+| Application validator                | `{Method}{Resource}QueryValidatorTests.cs`     |
+| Infrastructure service               | `{ServiceClass}Tests.cs`                       |
+
+**Examples**: `HoroscopeCreateTests.cs`, `ZodiacSignInfoIsDateInRangeTests.cs`, `GetDailyHoroscopeQueryHandlerTests.cs`,
+`GetDailyHoroscopeQueryValidatorTests.cs`, `RedisCacheTests.cs`
+
 ## Naming Conventions
 
 ### Features (Application layer)
@@ -98,8 +113,8 @@ Each feature lives in its own folder under `Application/Features/{Resource}/` an
 | Handler     | `{Method}{Resource}QueryHandler` or `{Method}{Resource}CommandHandler`     |
 | Validator   | `{Method}{Resource}QueryValidator` or `{Method}{Resource}CommandValidator` |
 
-**Queries** are used exclusively for `GET` operations. All other HTTP methods (`POST`, `PUT`, `PATCH`, `DELETE`) use *
-*Commands**.
+**Queries** are used exclusively for `GET` operations. All other HTTP methods (`POST`, `PUT`, `PATCH`, `DELETE`) use
+**Commands**.
 
 Parameterless queries (records with no properties) are exempt from the three-file requirement — they do not need a
 validator.
@@ -116,10 +131,94 @@ for writes):
 - `GetHoroscopesByDateRangeRepositoryQuery`
 - `UpsertApiKeysRepositoryCommand`
 
-### Examples
+### Endpoints (WebApi layer)
+
+Endpoint modules implement `IEndpoints` (extends `ICarterModule`) and live under `Endpoints/{Resource}/`. Each module
+groups related routes under a `MapGroup` with lowercase URL prefix, authorization policy, and OpenAPI tags.
+
+| File naming                 | Class naming                 | Route group       |
+|-----------------------------|------------------------------|-------------------|
+| `HoroscopesEndpoints.cs`   | `HoroscopesEndpoints`        | `horoscopes`      |
+| `ApiKeysEndpoints.cs`      | `ApiKeysEndpoints`           | `api-keys`        |
+| `ZodiacSignsEndpoints.cs`  | `ZodiacSignsEndpoints`       | `zodiac-signs`    |
+| `CompatibilitiesEndpoints.cs` | `CompatibilitiesEndpoints` | `compatibilities` |
+
+### Domain Errors
+
+Each aggregate has a static `{Entity}Errors` class with `Error` properties. Errors include metadata dictionaries mapping
+to HTTP status codes via `ErrorConsts.ErrorType`.
+
+**Examples**: `HoroscopeErrors.NotFound`, `ZodiacSignErrors.InvalidName`, `CompatibilityErrors.InvalidScore`
+
+### Feature Examples
 
 | Endpoint                | Request DTO              | Handler                         | Validator                         |
 |-------------------------|--------------------------|---------------------------------|-----------------------------------|
 | `GET /horoscopes/daily` | `GetDailyHoroscopeQuery` | `GetDailyHoroscopeQueryHandler` | `GetDailyHoroscopeQueryValidator` |
 | `POST /api-keys`        | `CreateApiKeysCommand`   | `CreateApiKeysCommandHandler`   | `CreateApiKeysCommandValidator`   |
 | `GET /api-keys`         | `GetApiKeysQuery`        | `GetApiKeysQueryHandler`        | `GetApiKeysQueryValidator`        |
+
+## Core Business Logic
+
+The API generates AI-powered horoscope predictions for all 12 zodiac signs across multiple time periods (daily, weekly,
+monthly, yearly). When a horoscope is requested, the system first checks the Redis cache, then the database; if neither
+has a result, it generates a new prediction via HuggingFace (Llama 3.1 8B Instruct), persists it to PostgreSQL, and
+caches it in Redis. The same generate-or-retrieve pattern applies to zodiac sign compatibility assessments. API access is
+controlled through API keys (created and validated internally) with configurable rate limits and scopes, while user
+authentication flows through Keycloak JWTs.
+
+## Entities
+
+### Horoscope
+
+**Purpose**: An AI-generated horoscope prediction for a specific zodiac sign, period, and date.
+
+**Key Properties**: `ZodiacSignId`, `Period` (Daily/Weekly/Monthly/Yearly), `Date`, `GeneralPrediction`,
+`LovePrediction`, `CareerPrediction`, `HealthPrediction`, `LuckyNumbers`, `LuckyColors`, `MoodScore`, `Keywords`
+
+**Relationships**: Belongs to one `ZodiacSignInfo` (via `ZodiacSignId`).
+
+### ZodiacSignInfo
+
+**Purpose**: Reference data for a zodiac sign — its date range, element, quality, polarity, ruling planet, and
+description.
+
+**Key Properties**: `Sign` (enum), `Name`, `Symbol`, `StartMonth/StartDay`, `EndMonth/EndDay`, `Element`, `Quality`,
+`Polarity`, `RulingPlanet`, `Description`
+
+**Relationships**: Has many `Horoscope` records. Referenced by `Compatibility` (as both first and second sign).
+
+### Compatibility
+
+**Purpose**: An AI-generated compatibility assessment between two zodiac signs, with a score and description.
+
+**Key Properties**: `FirstZodiacSignId`, `SecondZodiacSignId`, `Score` (0–100), `Description`
+
+**Relationships**: References two `ZodiacSignInfo` entities (`FirstZodiacSignInfo`, `SecondZodiacSignInfo`).
+
+### PromptTemplate
+
+**Purpose**: Stores the system prompt, few-shot examples, and user prompt template used to generate AI predictions.
+
+**Key Properties**: `Type` (Daily/Weekly/Monthly/Yearly/Compatibility), `SystemPrompt`, `FewShotExamples`,
+`UserPromptTemplate`
+
+**Relationships**: Standalone — referenced at generation time by `PromptType`.
+
+### ApiKey
+
+**Purpose**: An API key issued to consumers for accessing the horoscope endpoints. Stores a hashed version of the key
+with salt for secure validation.
+
+**Key Properties**: `OwnerId` (Guid), `Prefix`, `Hash`, `Salt`, `Algorithm`, `Type` (Permanent/Temporary),
+`RateLimitType` (None/PerMinute/PerHour/PerDay), `RateLimitCount`, `RateLimit`, `ExpiresAtUtc`
+
+**Relationships**: Has many `ApiKeyScope` records.
+
+### ApiKeyScope
+
+**Purpose**: Defines a named permission scope attached to an API key, controlling what the key is authorized to access.
+
+**Key Properties**: `ApiKeyId`, `Name`
+
+**Relationships**: Belongs to one `ApiKey`.
