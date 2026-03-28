@@ -36,6 +36,32 @@
                 "${workspaceFolder}/src/src.slnx"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "dotnet run: Local",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "run",
+                "-lp",
+                "Local",
+                "--project",
+                "${workspaceFolder}/src/HoroscopeApi.WebApi/HoroscopeApi.WebApi.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "dotnet run: Dev",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "run",
+                "-lp",
+                "Development",
+                "--project",
+                "${workspaceFolder}/src/HoroscopeApi.WebApi/HoroscopeApi.WebApi.csproj"
+            ],
+            "problemMatcher": "$msCompile"
         }
     ]
 }
