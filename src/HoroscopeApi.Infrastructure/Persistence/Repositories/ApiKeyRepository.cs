@@ -62,8 +62,9 @@ internal sealed class ApiKeyRepository(ApplicationDbContext context) : IApiKeyRe
                 existing.Algorithm = apiKey.Algorithm;
                 existing.Type = apiKey.Type;
                 existing.RateLimitType = apiKey.RateLimitType;
-                existing.RateLimitCount = apiKey.RateLimitCount;
                 existing.RateLimit = apiKey.RateLimit;
+                existing.Name = apiKey.Name;
+                existing.ExpiresAtUtc = apiKey.ExpiresAtUtc;
 
                 // Remove scopes that are no longer present
                 existing.Scopes.RemoveAll(s =>

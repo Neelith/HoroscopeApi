@@ -147,6 +147,7 @@ public sealed class ApiKeyServiceTests
         DomainApiKey apiKey = new()
         {
             OwnerId = Guid.NewGuid(),
+            Name = "Test Permanent Key",
             Prefix = prefix,
             Hash = hash,
             Salt = salt,
@@ -180,6 +181,7 @@ public sealed class ApiKeyServiceTests
         DomainApiKey apiKey = new()
         {
             OwnerId = Guid.NewGuid(),
+            Name = "Test Temporary Key",
             Prefix = prefix,
             Hash = hash,
             Salt = salt,
@@ -214,6 +216,7 @@ public sealed class ApiKeyServiceTests
         DomainApiKey apiKey = new()
         {
             OwnerId = Guid.NewGuid(),
+            Name = "Expired Temporary Key",
             Prefix = prefix,
             Hash = hash,
             Salt = salt,
@@ -246,6 +249,7 @@ public sealed class ApiKeyServiceTests
         DomainApiKey apiKey = new()
         {
             OwnerId = Guid.NewGuid(),
+            Name = "Wrong Hash Key",
             Prefix = prefix,
             Hash = "wronghash==",
             Salt = salt,
@@ -280,13 +284,13 @@ public sealed class ApiKeyServiceTests
         {
             Id = 42,
             OwnerId = Guid.NewGuid(),
+            Name = "Enriched Key",
             Prefix = prefix,
             Hash = hash,
             Salt = salt,
             Algorithm = "HMAC-SHA256",
             Type = ApiKeyType.Permanent,
             RateLimitType = ApiKeyRateLimitType.PerMinute,
-            RateLimitCount = 1,
             RateLimit = 100,
             Scopes =
             [
@@ -306,7 +310,6 @@ public sealed class ApiKeyServiceTests
         Assert.True(validation.IsValid);
         Assert.Equal(42, validation.ApiKeyId);
         Assert.Equal(ApiKeyRateLimitType.PerMinute, validation.RateLimitType);
-        Assert.Equal(1, validation.RateLimitCount);
         Assert.Equal(100, validation.RateLimit);
         Assert.NotNull(validation.Scopes);
         Assert.Equal(2, validation.Scopes.Count);
@@ -330,6 +333,7 @@ public sealed class ApiKeyServiceTests
         {
             Id = 1,
             OwnerId = Guid.NewGuid(),
+            Name = "Cache Test Key",
             Prefix = prefix,
             Hash = hash,
             Salt = salt,
@@ -360,7 +364,6 @@ public sealed class ApiKeyServiceTests
             IsValid: true,
             ApiKeyId: 42,
             RateLimitType: ApiKeyRateLimitType.PerHour,
-            RateLimitCount: 1,
             RateLimit: 500,
             Scopes: ["horoscopes"]);
 

@@ -1,3 +1,5 @@
+using HoroscopeApi.Domain.ApiKeys;
+
 namespace HoroscopeApi.Application.Features.ApiKeys.CreateApiKeys;
 
 internal sealed class CreateApiKeysCommandValidator : AbstractValidator<CreateApiKeysCommands>
@@ -10,6 +12,10 @@ internal sealed class CreateApiKeysCommandValidator : AbstractValidator<CreateAp
 
         RuleForEach(x => x.Commands).ChildRules(item =>
         {
+            item.RuleFor(x => x.Name)
+                .NotEmpty()
+                .WithMessage("API key name is required.");
+
             item.RuleFor(x => x.Type)
                 .IsInEnum()
                 .WithMessage("Invalid API key type.");
@@ -18,15 +24,20 @@ internal sealed class CreateApiKeysCommandValidator : AbstractValidator<CreateAp
                 .IsInEnum()
                 .WithMessage("Invalid rate limit type.");
 
-            item.RuleFor(x => x.RateLimitCount)
-                .GreaterThan(0)
-                .When(x => x.RateLimitCount.HasValue)
-                .WithMessage("Rate limit count must be greater than 0.");
-
             item.RuleFor(x => x.RateLimit)
                 .GreaterThan(0)
                 .When(x => x.RateLimit.HasValue)
                 .WithMessage("Rate limit must be greater than 0.");
+
+            item.RuleFor(x => x.ExpiresAtUtc)
+                .NotNull()
+                .WithMessage("Expiration date is required for temporary API keys.")
+                .When(x => x.Type == ApiKeyType.Temporary);
+
+            item.RuleFor(x => x.ExpiresAtUtc)
+                .Must(date => date > DateTime.UtcNow)
+                .WithMessage("Expiration date must be in the future.")
+                .When(x => x.ExpiresAtUtc.HasValue);
 
             item.RuleForEach(x => x.Scopes)
                 .NotEmpty()

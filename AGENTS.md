@@ -210,8 +210,8 @@ description.
 **Purpose**: An API key issued to consumers for accessing the horoscope endpoints. Stores a hashed version of the key
 with salt for secure validation.
 
-**Key Properties**: `OwnerId` (Guid), `Prefix`, `Hash`, `Salt`, `Algorithm`, `Type` (Permanent/Temporary),
-`RateLimitType` (None/PerMinute/PerHour/PerDay), `RateLimitCount`, `RateLimit`, `ExpiresAtUtc`
+**Key Properties**: `OwnerId` (Guid), `Name`, `Prefix`, `Hash`, `Salt`, `Algorithm`, `Type` (Permanent/Temporary),
+`RateLimitType` (None/PerMinute/PerHour/PerDay), `RateLimit`, `ExpiresAtUtc`
 
 **Relationships**: Has many `ApiKeyScope` records.
 

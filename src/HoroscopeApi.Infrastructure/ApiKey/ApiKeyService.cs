@@ -76,7 +76,6 @@ internal class ApiKeyService(
                 IsValid: true,
                 ApiKeyId: key.Id,
                 RateLimitType: key.RateLimitType,
-                RateLimitCount: key.RateLimitCount,
                 RateLimit: key.RateLimit,
                 Scopes: key.Scopes.Select(s => s.Name).ToList());
 

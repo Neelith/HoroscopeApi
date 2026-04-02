@@ -9,14 +9,10 @@ namespace HoroscopeApi.WebApi.Infrastructure.Setup.Authorization.ApiKeyPolicy;
 public class ApiKeyAuthorizationHandler(
     IHttpContextAccessor accessor,
     IApiKeyService apiKeyService,
-    IApiKeyRateLimiter apiKeyRateLimiter)
+    IApiKeyRateLimiter apiKeyRateLimiter,
+    ILogger<ApiKeyAuthorizationHandler> logger)
     : AuthorizationHandler<ApiKeyRequirement>
 {
-    private const string RateLimitLimitHeader = "X-RateLimit-Limit";
-    private const string RateLimitRemainingHeader = "X-RateLimit-Remaining";
-    private const string RateLimitResetHeader = "X-RateLimit-Reset";
-    private const string RetryAfterHeader = "Retry-After";
-
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
         ApiKeyRequirement requirement)
     {
@@ -29,6 +25,7 @@ public class ApiKeyAuthorizationHandler(
 
         if (!httpContext.Request.Headers.TryGetValue(Headers.ApiKey, out StringValues apiKeyHeaderValues))
         {
+            logger.LogWarning("API key header '{Header}' is missing from the request", Headers.ApiKey);
             context.Fail();
             return;
         }
@@ -36,6 +33,7 @@ public class ApiKeyAuthorizationHandler(
         string? providedApiKey = apiKeyHeaderValues.FirstOrDefault();
         if (string.IsNullOrEmpty(providedApiKey))
         {
+            logger.LogWarning("API key header '{Header}' is present but empty", Headers.ApiKey);
             context.Fail();
             return;
         }
@@ -46,6 +44,8 @@ public class ApiKeyAuthorizationHandler(
 
         if (apiKeyValidationResult.IsFailure)
         {
+            logger.LogWarning("API key validation failed for key with prefix '{Prefix}'",
+                providedApiKey.Length >= 8 ? providedApiKey[..8] : providedApiKey);
             context.Fail();
             return;
         }
@@ -54,6 +54,8 @@ public class ApiKeyAuthorizationHandler(
 
         if (apiKeyValidation.IsNotValid)
         {
+            logger.LogWarning("API key is invalid or expired for key with prefix '{Prefix}'",
+                providedApiKey.Length >= 8 ? providedApiKey[..8] : providedApiKey);
             context.Fail();
             return;
         }
@@ -61,6 +63,13 @@ public class ApiKeyAuthorizationHandler(
         // Check scopes
         if (!HasRequiredScope(httpContext, apiKeyValidation))
         {
+            var scopeMetadata =
+                httpContext.GetEndpoint()?.Metadata.GetMetadata<ApiKeyScopeMetadata>();
+
+            logger.LogWarning(
+                "API key {ApiKeyId} lacks required scope '{RequiredScope}'",
+                apiKeyValidation.ApiKeyId, scopeMetadata?.Scope);
+
             httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
             context.Fail();
             return;
@@ -80,12 +89,18 @@ public class ApiKeyAuthorizationHandler(
 
             if (rateLimitResult.IsExceeded)
             {
+                logger.LogWarning(
+                    "Rate limit exceeded for API key {ApiKeyId}. Limit: {Limit}, Remaining: {Remaining}, Resets at: {ResetAtUtc}",
+                    apiKeyValidation.ApiKeyId, rateLimitResult.Limit, rateLimitResult.Remaining,
+                    rateLimitResult.ResetAtUtc.ToString("o"));
+
                 httpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
                 context.Fail();
                 return;
             }
         }
 
+        logger.LogDebug("API key {ApiKeyId} authorized successfully", apiKeyValidation.ApiKeyId);
         context.Succeed(requirement);
     }
 
@@ -110,15 +125,15 @@ public class ApiKeyAuthorizationHandler(
 
     private static void SetRateLimitHeaders(HttpContext httpContext, ApiKeyRateLimitResult rateLimitResult)
     {
-        httpContext.Response.Headers[RateLimitLimitHeader] = rateLimitResult.Limit.ToString();
-        httpContext.Response.Headers[RateLimitRemainingHeader] = rateLimitResult.Remaining.ToString();
-        httpContext.Response.Headers[RateLimitResetHeader] = rateLimitResult.ResetAtUtc.ToString("o");
+        httpContext.Response.Headers[Headers.RateLimitLimit] = rateLimitResult.Limit.ToString();
+        httpContext.Response.Headers[Headers.RateLimitRemaining] = rateLimitResult.Remaining.ToString();
+        httpContext.Response.Headers[Headers.RateLimitReset] = rateLimitResult.ResetAtUtc.ToString("o");
 
         if (rateLimitResult.IsExceeded)
         {
             long retryAfterSeconds = (long)Math.Ceiling(
                 (rateLimitResult.ResetAtUtc - DateTime.UtcNow).TotalSeconds);
-            httpContext.Response.Headers[RetryAfterHeader] = Math.Max(1, retryAfterSeconds).ToString();
+            httpContext.Response.Headers[Headers.RetryAfter] = Math.Max(1, retryAfterSeconds).ToString();
         }
     }
 }

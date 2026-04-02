@@ -47,7 +47,7 @@ public sealed class CreateApiKeysCommandHandlerTests
         _unitOfWorkMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
-        CreateApiKeyCommand command = new(ApiKeyType.Permanent, ApiKeyRateLimitType.None);
+        CreateApiKeyCommand command = new("My API Key", ApiKeyType.Permanent, ApiKeyRateLimitType.None);
         CreateApiKeysCommands commands = new([command]);
         CreateApiKeysCommandHandler handler = CreateHandler();
 
@@ -59,6 +59,7 @@ public sealed class CreateApiKeysCommandHandlerTests
         Assert.Single(items);
         Assert.Equal("abcdef12", items[0].Prefix);
         Assert.Equal("abcdef1234567890", items[0].PlainTextKey);
+        Assert.Equal("My API Key", items[0].Name);
     }
 
     [Fact]
@@ -79,8 +80,9 @@ public sealed class CreateApiKeysCommandHandlerTests
             .ReturnsAsync(2);
 
         CreateApiKeysCommands commands = new([
-            new CreateApiKeyCommand(ApiKeyType.Permanent, ApiKeyRateLimitType.None),
-            new CreateApiKeyCommand(ApiKeyType.Temporary, ApiKeyRateLimitType.PerMinute, 100, 60)
+            new CreateApiKeyCommand("Key 1", ApiKeyType.Permanent, ApiKeyRateLimitType.None),
+            new CreateApiKeyCommand("Key 2", ApiKeyType.Temporary, ApiKeyRateLimitType.PerMinute, 60,
+                DateTime.UtcNow.AddDays(30))
         ]);
         CreateApiKeysCommandHandler handler = CreateHandler();
 
@@ -107,7 +109,7 @@ public sealed class CreateApiKeysCommandHandlerTests
             .ThrowsAsync(new Exception("Database error"));
 
         CreateApiKeysCommands commands = new([
-            new CreateApiKeyCommand(ApiKeyType.Permanent, ApiKeyRateLimitType.None)
+            new CreateApiKeyCommand("My Key", ApiKeyType.Permanent, ApiKeyRateLimitType.None)
         ]);
         CreateApiKeysCommandHandler handler = CreateHandler();
 
@@ -133,7 +135,8 @@ public sealed class CreateApiKeysCommandHandlerTests
         _unitOfWorkMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
-        CreateApiKeyCommand command = new(ApiKeyType.Permanent, ApiKeyRateLimitType.None, Scopes: ["read", "write"]);
+        CreateApiKeyCommand command = new("My Key", ApiKeyType.Permanent, ApiKeyRateLimitType.None,
+            Scopes: ["read", "write"]);
         CreateApiKeysCommands commands = new([command]);
         CreateApiKeysCommandHandler handler = CreateHandler();
 
@@ -143,5 +146,38 @@ public sealed class CreateApiKeysCommandHandlerTests
         CreateApiKeyData item = result.Value!.Data.Items.First();
         Assert.Contains("read", item.Scopes);
         Assert.Contains("write", item.Scopes);
+    }
+
+    [Fact]
+    public async Task Handle_WithExpiresAtUtc_SetsExpirationOnEntity()
+    {
+        var expiresAt = DateTime.UtcNow.AddDays(30);
+
+        _apiKeyServiceMock.Setup(s => s.GeneratePlainTextKey(It.IsAny<int>()))
+            .Returns("abcdef1234567890");
+        _apiKeyServiceMock.Setup(s => s.GenerateSalt(It.IsAny<int>()))
+            .Returns("dGVzdA==");
+        _apiKeyServiceMock.Setup(s => s.ComputeHash(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns("hash==");
+
+        UpsertApiKeysRepositoryCommand? capturedCommand = null;
+        _repositoryMock.Setup(r =>
+                r.UpsertRangeAsync(It.IsAny<UpsertApiKeysRepositoryCommand>(), It.IsAny<CancellationToken>()))
+            .Callback<UpsertApiKeysRepositoryCommand, CancellationToken>((cmd, _) => capturedCommand = cmd)
+            .Returns(Task.CompletedTask);
+        _unitOfWorkMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+
+        CreateApiKeyCommand command = new("Temp Key", ApiKeyType.Temporary, ApiKeyRateLimitType.None,
+            ExpiresAtUtc: expiresAt);
+        CreateApiKeysCommands commands = new([command]);
+        var handler = CreateHandler();
+
+        await handler.Handle(commands, CancellationToken.None);
+
+        Assert.NotNull(capturedCommand);
+        var entity = capturedCommand!.ApiKeys.First();
+        Assert.Equal("Temp Key", entity.Name);
+        Assert.Equal(expiresAt, entity.ExpiresAtUtc);
     }
 }

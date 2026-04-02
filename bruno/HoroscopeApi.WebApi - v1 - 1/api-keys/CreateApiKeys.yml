@@ -14,14 +14,13 @@ http:
       {
         "commands": [
           {
+            "name": "ciao",
             "type": 1,
             "rateLimitType": 1,
-            "rateLimitCount": 0,
             "rateLimit": 1,
             "scopes": [
               "horoscopes"
-            ],
-            "expiresAtUtc":"2027-04-02T16:57:05.639+0200"
+            ]
           }
         ]
       }

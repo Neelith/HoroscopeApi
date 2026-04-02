@@ -37,14 +37,15 @@ internal sealed class CreateApiKeysCommandHandler(
             ApiKey apiKey = new()
             {
                 OwnerId = currentUser.Id,
+                Name = item.Name,
                 Prefix = prefix,
                 Hash = hash,
                 Salt = salt,
                 Algorithm = Algorithm,
                 Type = item.Type,
                 RateLimitType = item.RateLimitType,
-                RateLimitCount = item.RateLimitCount,
                 RateLimit = item.RateLimit,
+                ExpiresAtUtc = item.ExpiresAtUtc,
                 Scopes = item.Scopes?.Select(name => new ApiKeyScope { ApiKeyId = 0, Name = name }).ToList() ?? []
             };
 

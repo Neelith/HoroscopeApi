@@ -28,6 +28,7 @@ public sealed class GetApiKeysQueryHandlerTests
         {
             Id = id,
             OwnerId = Guid.NewGuid(),
+            Name = "Test Key",
             Prefix = "abcdef12",
             Hash = "hash==",
             Salt = "salt==",
@@ -131,13 +132,14 @@ public sealed class GetApiKeysQueryHandlerTests
         {
             Id = 5,
             OwnerId = Guid.NewGuid(),
+            Name = "Production Key",
             Prefix = "mypref12",
             Hash = "hash==",
             Salt = "salt==",
             Algorithm = "HMAC-SHA256",
             Type = ApiKeyType.Temporary,
             RateLimitType = ApiKeyRateLimitType.PerDay,
-            RateLimitCount = 500,
+            ExpiresAtUtc = new DateTime(2027, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             Scopes = [new ApiKeyScope { Id = 1, ApiKeyId = 5, Name = "read" }]
         };
 
@@ -153,7 +155,8 @@ public sealed class GetApiKeysQueryHandlerTests
         Assert.Equal("mypref12", item.Prefix);
         Assert.Equal("Temporary", item.Type);
         Assert.Equal("PerDay", item.RateLimitType);
-        Assert.Equal(500, item.RateLimitCount);
+        Assert.Equal("Production Key", item.Name);
+        Assert.Equal(new DateTime(2027, 1, 1, 0, 0, 0, DateTimeKind.Utc), item.ExpiresAtUtc);
         Assert.Contains("read", item.Scopes);
     }
 }

@@ -6,7 +6,6 @@ public record ApiKeyValidation(
     bool IsValid,
     int? ApiKeyId = null,
     ApiKeyRateLimitType? RateLimitType = null,
-    int? RateLimitCount = null,
     int? RateLimit = null,
     List<string>? Scopes = null)
 {
