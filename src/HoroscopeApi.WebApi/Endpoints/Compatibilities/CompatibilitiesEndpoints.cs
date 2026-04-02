@@ -3,6 +3,7 @@ using HoroscopeApi.Application.Features.Compatibilities.GetCompatibility;
 using HoroscopeApi.Application.Models;
 using HoroscopeApi.WebApi.Constants;
 using HoroscopeApi.WebApi.Infrastructure.Extensions;
+using HoroscopeApi.WebApi.Infrastructure.Setup.Authorization.ApiKeyPolicy;
 
 namespace HoroscopeApi.WebApi.Endpoints.Compatibilities;
 
@@ -13,7 +14,8 @@ public sealed class CompatibilitiesEndpoints : IEndpoints
         RouteGroupBuilder group = app.MapGroup("compatibilities")
             .RequireAuthorization(AuthorizationPolicies.ApiKey)
             .WithTags(Tags.Compatibilities)
-            .WithDescription("Zodiac sign compatibility endpoints");
+            .WithDescription("Zodiac sign compatibility endpoints")
+            .WithMetadata(new ApiKeyScopeMetadata("compatibilities"));
 
         group.MapGet("{firstSignName}/{secondSignName}", async (
                 string firstSignName,

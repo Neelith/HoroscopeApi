@@ -7,6 +7,7 @@ using HoroscopeApi.Application.Features.Horoscopes.GetYearlyHoroscope;
 using HoroscopeApi.Application.Models;
 using HoroscopeApi.WebApi.Constants;
 using HoroscopeApi.WebApi.Infrastructure.Extensions;
+using HoroscopeApi.WebApi.Infrastructure.Setup.Authorization.ApiKeyPolicy;
 
 namespace HoroscopeApi.WebApi.Endpoints.Horoscopes;
 
@@ -17,7 +18,8 @@ public sealed class HoroscopesEndpoints : IEndpoints
         RouteGroupBuilder group = app.MapGroup("horoscopes")
             .RequireAuthorization(AuthorizationPolicies.ApiKey)
             .WithTags(Tags.Horoscopes)
-            .WithDescription("Horoscope reading endpoints");
+            .WithDescription("Horoscope reading endpoints")
+            .WithMetadata(new ApiKeyScopeMetadata("horoscopes"));
 
         group.MapGet("{signName}/daily", async (
                 string signName,

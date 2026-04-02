@@ -1,3 +1,4 @@
+using HoroscopeApi.Application.Infrastructure.Caching;
 using HoroscopeApi.Application.Services.ApiKey;
 using HoroscopeApi.Application.Services.Time;
 using HoroscopeApi.Application.Settings;
@@ -11,12 +12,14 @@ namespace HoroscopeApi.Tests.Infrastructure.ApiKey;
 public sealed class ApiKeyServiceTests
 {
     private readonly Mock<IDateTimeProvider> _dateTimeProviderMock = new();
+    private readonly Mock<IRedisCache> _redisCacheMock = new();
     private readonly Mock<IApiKeyRepository> _repositoryMock = new();
 
     private ApiKeyService CreateService(int prefixLength = 8, string secret = "super-secret-key")
     {
-        return new ApiKeyService(Options.Create(new ApiKeySettings { Secret = secret, PrefixLenght = prefixLength }),
-            _repositoryMock.Object, _dateTimeProviderMock.Object);
+        return new ApiKeyService(
+            Options.Create(new ApiKeySettings { Secret = secret, PrefixLenght = prefixLength }),
+            _repositoryMock.Object, _dateTimeProviderMock.Object, _redisCacheMock.Object);
     }
 
     [Fact]
@@ -259,5 +262,147 @@ public sealed class ApiKeyServiceTests
 
         Assert.True(result.IsSuccess);
         Assert.False(result.Value!.IsValid);
+    }
+
+    [Fact]
+    public async Task ValidateKeyAsync_WithValidKey_ReturnsEnrichedValidation()
+    {
+        ApiKeyService service = CreateService();
+        DateTime now = DateTime.UtcNow;
+        _dateTimeProviderMock.Setup(p => p.UtcNow).Returns(now);
+
+        string plainKey = service.GeneratePlainTextKey();
+        string salt = service.GenerateSalt();
+        string hash = service.ComputeHash(plainKey, salt);
+        string prefix = plainKey[..8];
+
+        DomainApiKey apiKey = new()
+        {
+            Id = 42,
+            OwnerId = Guid.NewGuid(),
+            Prefix = prefix,
+            Hash = hash,
+            Salt = salt,
+            Algorithm = "HMAC-SHA256",
+            Type = ApiKeyType.Permanent,
+            RateLimitType = ApiKeyRateLimitType.PerMinute,
+            RateLimitCount = 1,
+            RateLimit = 100,
+            Scopes =
+            [
+                new ApiKeyScope { Id = 1, ApiKeyId = 42, Name = "horoscopes" },
+                new ApiKeyScope { Id = 2, ApiKeyId = 42, Name = "zodiac-signs" }
+            ]
+        };
+
+        _repositoryMock.Setup(r =>
+                r.GetByFilterAsync(It.IsAny<GetApiKeysByFilterRepositoryQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([apiKey]);
+
+        Result<ApiKeyValidation> result = await service.ValidateKeyAsync(plainKey, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        ApiKeyValidation validation = result.Value!;
+        Assert.True(validation.IsValid);
+        Assert.Equal(42, validation.ApiKeyId);
+        Assert.Equal(ApiKeyRateLimitType.PerMinute, validation.RateLimitType);
+        Assert.Equal(1, validation.RateLimitCount);
+        Assert.Equal(100, validation.RateLimit);
+        Assert.NotNull(validation.Scopes);
+        Assert.Equal(2, validation.Scopes.Count);
+        Assert.Contains("horoscopes", validation.Scopes);
+        Assert.Contains("zodiac-signs", validation.Scopes);
+    }
+
+    [Fact]
+    public async Task ValidateKeyAsync_CachesValidationResultOnSuccess()
+    {
+        ApiKeyService service = CreateService();
+        DateTime now = DateTime.UtcNow;
+        _dateTimeProviderMock.Setup(p => p.UtcNow).Returns(now);
+
+        string plainKey = service.GeneratePlainTextKey();
+        string salt = service.GenerateSalt();
+        string hash = service.ComputeHash(plainKey, salt);
+        string prefix = plainKey[..8];
+
+        DomainApiKey apiKey = new()
+        {
+            Id = 1,
+            OwnerId = Guid.NewGuid(),
+            Prefix = prefix,
+            Hash = hash,
+            Salt = salt,
+            Algorithm = "HMAC-SHA256",
+            Type = ApiKeyType.Permanent,
+            RateLimitType = ApiKeyRateLimitType.None
+        };
+
+        _repositoryMock.Setup(r =>
+                r.GetByFilterAsync(It.IsAny<GetApiKeysByFilterRepositoryQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([apiKey]);
+
+        await service.ValidateKeyAsync(plainKey, CancellationToken.None);
+
+        _redisCacheMock.Verify(
+            c => c.SetAsync(
+                It.Is<string>(k => k.StartsWith("apikey:validation:")),
+                It.Is<ApiKeyValidation>(v => v.IsValid),
+                It.Is<TimeSpan>(t => t == TimeSpan.FromMinutes(1)),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task ValidateKeyAsync_ReturnsCachedResultOnCacheHit()
+    {
+        ApiKeyValidation cachedValidation = new(
+            IsValid: true,
+            ApiKeyId: 42,
+            RateLimitType: ApiKeyRateLimitType.PerHour,
+            RateLimitCount: 1,
+            RateLimit: 500,
+            Scopes: ["horoscopes"]);
+
+        _redisCacheMock.Setup(c => c.GetAsync<ApiKeyValidation>(
+                It.Is<string>(k => k.StartsWith("apikey:validation:")),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(cachedValidation);
+
+        ApiKeyService service = CreateService();
+        string plainKey = service.GeneratePlainTextKey();
+
+        Result<ApiKeyValidation> result = await service.ValidateKeyAsync(plainKey, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Value!.IsValid);
+        Assert.Equal(42, result.Value.ApiKeyId);
+
+        // Verify DB was never queried
+        _repositoryMock.Verify(
+            r => r.GetByFilterAsync(It.IsAny<GetApiKeysByFilterRepositoryQuery>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task ValidateKeyAsync_DoesNotCacheInvalidResult()
+    {
+        _repositoryMock.Setup(r =>
+                r.GetByFilterAsync(It.IsAny<GetApiKeysByFilterRepositoryQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+        _dateTimeProviderMock.Setup(p => p.UtcNow).Returns(DateTime.UtcNow);
+
+        ApiKeyService service = CreateService();
+        string plainKey = service.GeneratePlainTextKey();
+
+        await service.ValidateKeyAsync(plainKey, CancellationToken.None);
+
+        _redisCacheMock.Verify(
+            c => c.SetAsync(
+                It.IsAny<string>(),
+                It.IsAny<ApiKeyValidation>(),
+                It.IsAny<TimeSpan?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 }

@@ -38,7 +38,10 @@ internal static class ResultExtensions
         return errorType switch
         {
             ErrorConsts.BadRequestCode => result.ToProblem(HttpStatusCode.BadRequest),
+            ErrorConsts.UnauthorizedCode => result.ToProblem(HttpStatusCode.Unauthorized),
+            ErrorConsts.ForbiddenCode => result.ToProblem(HttpStatusCode.Forbidden),
             ErrorConsts.NotFoundCode => result.ToProblem(HttpStatusCode.NotFound),
+            ErrorConsts.TooManyRequestsCode => result.ToProblem(HttpStatusCode.TooManyRequests),
             ErrorConsts.InternalServerErrorCode => result.ToProblem(HttpStatusCode.InternalServerError),
             _ => throw new ArgumentException("Unhandled result error code")
         };

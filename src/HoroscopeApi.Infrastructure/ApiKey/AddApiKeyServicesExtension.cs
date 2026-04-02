@@ -8,6 +8,7 @@ public static class AddApiKeyServicesExtension
     public static IServiceCollection AddApiKeyServices(this IServiceCollection services)
     {
         services.AddScoped<IApiKeyService, ApiKeyService>();
+        services.AddScoped<IApiKeyRateLimiter, RedisApiKeyRateLimiter>();
 
         return services;
     }
