@@ -47,7 +47,7 @@ internal static class DependencyInjection
             .AddExceptionHandler<GlobalExceptionHandler>()
             .ConfigureProblemDetails()
             .AddCorsServices()
-            .AddAuthenticationServices(jwtSettings)
+            .AddAuthenticationServices(jwtSettings, webApplicationBuilder.Environment)
             .AddAuthorizationServices()
             .AddApplicationServices()
             .AddInfrastructureServices(startupLogger, dbConnectionString, redisSettings)

@@ -7,8 +7,11 @@ http:
   method: GET
   url: "{{baseUrl}}/compatibilities/:firstSign/:secondSign"
   params:
+    - name: ""
+      value: ""
+      type: query
     - name: secondSign
-      value: sagittarius
+      value: cancer
       type: path
     - name: firstSign
       value: capricorn

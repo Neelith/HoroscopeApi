@@ -26,18 +26,55 @@ internal sealed class CompatibilityQueryService(
         ZodiacSign secondSign,
         CancellationToken cancellationToken)
     {
-        // Normalize pair: lower enum value first
         (ZodiacSign normalizedFirst, ZodiacSign normalizedSecond) = NormalizeSignPair(firstSign, secondSign);
 
-        // Try cache first
-        string cacheKey = $"compatibility:{normalizedFirst}:{normalizedSecond}";
+        string cacheKey = $"compatibility:{(int)normalizedFirst}:{(int)normalizedSecond}";
+        string lockKey = $"compatibility:lock:{(int)normalizedFirst}:{(int)normalizedSecond}";
+
         CompatibilityData? cachedData = await cache.GetAsync<CompatibilityData>(cacheKey, cancellationToken);
         if (cachedData is not null)
         {
             return Result.Ok((cachedData, true));
         }
 
-        // Fetch zodiac sign info for both signs
+        string? lockValue = await cache.TryAcquireLockAsync(lockKey, TimeSpan.FromSeconds(30), cancellationToken);
+
+        if (lockValue is null)
+        {
+            await Task.Delay(500, cancellationToken);
+            cachedData = await cache.GetAsync<CompatibilityData>(cacheKey, cancellationToken);
+
+            if (cachedData is not null)
+                return Result.Ok((cachedData, true));
+
+            for (int i = 0; i < 10; i++)
+            {
+                await Task.Delay(1000, cancellationToken);
+                cachedData = await cache.GetAsync<CompatibilityData>(cacheKey, cancellationToken);
+                if (cachedData is not null)
+                    return Result.Ok((cachedData, true));
+            }
+
+            return Result.Ko<(CompatibilityData, bool)>(CompatibilityErrors.NotFound);
+        }
+
+        try
+        {
+            return await GenerateCompatibilityInternalAsync(
+                normalizedFirst, normalizedSecond, cacheKey, cancellationToken);
+        }
+        finally
+        {
+            await cache.ReleaseLockAsync(lockKey, lockValue, cancellationToken);
+        }
+    }
+
+    private async Task<Result<(CompatibilityData Data, bool IsCached)>> GenerateCompatibilityInternalAsync(
+        ZodiacSign normalizedFirst,
+        ZodiacSign normalizedSecond,
+        string cacheKey,
+        CancellationToken cancellationToken)
+    {
         ZodiacSignInfo? firstSignInfo = await zodiacSignRepository.GetBySignAsync(
             new GetZodiacSignBySignRepositoryQuery(normalizedFirst), cancellationToken);
         ZodiacSignInfo? secondSignInfo = await zodiacSignRepository.GetBySignAsync(
@@ -53,7 +90,6 @@ internal sealed class CompatibilityQueryService(
             return Result.Ko<(CompatibilityData, bool)>(ZodiacSignErrors.NotFound(normalizedSecond));
         }
 
-        // Try database
         GetCompatibilityBySignPairRepositoryQuery repositoryQuery = new(firstSignInfo.Id, secondSignInfo.Id);
         Compatibility? compatibility =
             await compatibilityRepository.GetBySignPairAsync(repositoryQuery, cancellationToken);

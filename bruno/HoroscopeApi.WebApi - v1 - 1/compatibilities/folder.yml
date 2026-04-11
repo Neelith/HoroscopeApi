@@ -7,5 +7,5 @@ request:
   auth:
     type: apikey
     key: "{{apiKeyHeader}}"
-    value: "{{apiKey}}"
+    value: 95c423777bf6e68ce082ea2f0022cca7ff985ba3092f738ec12ad0e3d6dc21aa22f069ae55658b5893eee41ecb35d1c35c4ecccb34ef27fe
     placement: header

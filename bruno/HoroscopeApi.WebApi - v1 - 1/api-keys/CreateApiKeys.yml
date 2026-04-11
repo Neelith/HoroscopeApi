@@ -19,8 +19,9 @@ http:
             "rateLimitType": 1,
             "rateLimit": 1,
             "scopes": [
-              "horoscopes"
-            ]
+              "compatibilities"
+            ],
+            "expiresAtUtc":"2027-04-02T16:57:05.639Z"
           }
         ]
       }

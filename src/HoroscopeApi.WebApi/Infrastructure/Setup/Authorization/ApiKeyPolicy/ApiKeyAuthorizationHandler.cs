@@ -44,8 +44,8 @@ public class ApiKeyAuthorizationHandler(
 
         if (apiKeyValidationResult.IsFailure)
         {
-            logger.LogWarning("API key validation failed for key with prefix '{Prefix}'",
-                providedApiKey.Length >= 8 ? providedApiKey[..8] : providedApiKey);
+            logger.LogWarning("API key validation failed. TraceId: {TraceId}",
+                httpContext.TraceIdentifier);
             context.Fail();
             return;
         }
@@ -54,8 +54,8 @@ public class ApiKeyAuthorizationHandler(
 
         if (apiKeyValidation.IsNotValid)
         {
-            logger.LogWarning("API key is invalid or expired for key with prefix '{Prefix}'",
-                providedApiKey.Length >= 8 ? providedApiKey[..8] : providedApiKey);
+            logger.LogWarning("API key is invalid or expired. TraceId: {TraceId}",
+                httpContext.TraceIdentifier);
             context.Fail();
             return;
         }
@@ -94,9 +94,7 @@ public class ApiKeyAuthorizationHandler(
                     apiKeyValidation.ApiKeyId, rateLimitResult.Limit, rateLimitResult.Remaining,
                     rateLimitResult.ResetAtUtc.ToString("o"));
 
-                httpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-                context.Fail();
-                return;
+                throw new RateLimitExceededException(rateLimitResult);
             }
         }
 

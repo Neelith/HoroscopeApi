@@ -162,6 +162,8 @@ public sealed class CompatibilityQueryServiceTests
 
         _cacheMock.Setup(c => c.GetAsync<CompatibilityData>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((CompatibilityData?)null);
+        _cacheMock.Setup(c => c.TryAcquireLockAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("lock-value");
         SetupZodiacSignRepos(aries, taurus);
         _compatibilityRepoMock.Setup(r => r.GetBySignPairAsync(
                 It.IsAny<GetCompatibilityBySignPairRepositoryQuery>(), It.IsAny<CancellationToken>()))
@@ -169,6 +171,8 @@ public sealed class CompatibilityQueryServiceTests
         _cacheMock.Setup(c => c.SetAsync(It.IsAny<string>(), It.IsAny<CompatibilityData>(),
                 It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+        _cacheMock.Setup(c => c.ReleaseLockAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         CompatibilityQueryService service = CreateService();
         var result = await service.GetOrGenerateCompatibilityAsync(
@@ -188,6 +192,8 @@ public sealed class CompatibilityQueryServiceTests
 
         _cacheMock.Setup(c => c.GetAsync<CompatibilityData>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((CompatibilityData?)null);
+        _cacheMock.Setup(c => c.TryAcquireLockAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("lock-value");
         SetupZodiacSignRepos(aries, taurus);
         _compatibilityRepoMock.Setup(r => r.GetBySignPairAsync(
                 It.IsAny<GetCompatibilityBySignPairRepositoryQuery>(), It.IsAny<CancellationToken>()))
@@ -195,13 +201,15 @@ public sealed class CompatibilityQueryServiceTests
         _cacheMock.Setup(c => c.SetAsync(It.IsAny<string>(), It.IsAny<CompatibilityData>(),
                 It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+        _cacheMock.Setup(c => c.ReleaseLockAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         CompatibilityQueryService service = CreateService();
         await service.GetOrGenerateCompatibilityAsync(
             ZodiacSign.Aries, ZodiacSign.Taurus, CancellationToken.None);
 
         _cacheMock.Verify(c => c.SetAsync(
-            It.Is<string>(k => k.Contains("Aries") && k.Contains("Taurus")),
+            It.Is<string>(k => k.Contains("1") && k.Contains("2")),
             It.IsAny<CompatibilityData>(),
             It.Is<TimeSpan?>(t => t == TimeSpan.FromHours(24)),
             It.IsAny<CancellationToken>()), Times.Once);
@@ -216,6 +224,8 @@ public sealed class CompatibilityQueryServiceTests
 
         _cacheMock.Setup(c => c.GetAsync<CompatibilityData>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((CompatibilityData?)null);
+        _cacheMock.Setup(c => c.TryAcquireLockAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("lock-value");
         SetupZodiacSignRepos(aries, taurus);
 
         _compatibilityRepoMock.SetupSequence(r => r.GetBySignPairAsync(
@@ -235,6 +245,8 @@ public sealed class CompatibilityQueryServiceTests
         _cacheMock.Setup(c => c.SetAsync(It.IsAny<string>(), It.IsAny<CompatibilityData>(),
                 It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+        _cacheMock.Setup(c => c.ReleaseLockAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         CompatibilityQueryService service = CreateService();
         var result = await service.GetOrGenerateCompatibilityAsync(
@@ -252,6 +264,8 @@ public sealed class CompatibilityQueryServiceTests
 
         _cacheMock.Setup(c => c.GetAsync<CompatibilityData>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((CompatibilityData?)null);
+        _cacheMock.Setup(c => c.TryAcquireLockAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("lock-value");
         SetupZodiacSignRepos(aries, taurus);
         _compatibilityRepoMock.Setup(r => r.GetBySignPairAsync(
                 It.IsAny<GetCompatibilityBySignPairRepositoryQuery>(), It.IsAny<CancellationToken>()))
@@ -259,6 +273,8 @@ public sealed class CompatibilityQueryServiceTests
         _generatorMock.Setup(g => g.GenerateCompatibilityAsync(
                 It.IsAny<ZodiacSignInfo>(), It.IsAny<ZodiacSignInfo>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ko<HuggingFaceCompatibilityData>(CompatibilityErrors.NotFound));
+        _cacheMock.Setup(c => c.ReleaseLockAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         CompatibilityQueryService service = CreateService();
         var result = await service.GetOrGenerateCompatibilityAsync(
@@ -278,12 +294,11 @@ public sealed class CompatibilityQueryServiceTests
             .ReturnsAsync(BuildCompatibilityData());
 
         CompatibilityQueryService service = CreateService();
-        // Pass Taurus (2) before Aries (1) — should normalize to Aries:Taurus
         await service.GetOrGenerateCompatibilityAsync(
             ZodiacSign.Taurus, ZodiacSign.Aries, CancellationToken.None);
 
         Assert.NotNull(capturedKey);
-        Assert.Equal("compatibility:Aries:Taurus", capturedKey);
+        Assert.Equal("compatibility:1:2", capturedKey);
     }
 
     [Fact]
@@ -291,9 +306,13 @@ public sealed class CompatibilityQueryServiceTests
     {
         _cacheMock.Setup(c => c.GetAsync<CompatibilityData>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((CompatibilityData?)null);
+        _cacheMock.Setup(c => c.TryAcquireLockAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("lock-value");
         _zodiacSignRepoMock.Setup(r => r.GetBySignAsync(
                 It.IsAny<GetZodiacSignBySignRepositoryQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ZodiacSignInfo?)null);
+        _cacheMock.Setup(c => c.ReleaseLockAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         CompatibilityQueryService service = CreateService();
         var result = await service.GetOrGenerateCompatibilityAsync(
@@ -314,6 +333,8 @@ public sealed class CompatibilityQueryServiceTests
         _cacheMock.Setup(c => c.GetAsync<CompatibilityData>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .Callback<string, CancellationToken>((k, _) => capturedKey = k)
             .ReturnsAsync((CompatibilityData?)null);
+        _cacheMock.Setup(c => c.TryAcquireLockAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("lock-value");
         SetupZodiacSignRepos(aries, taurus);
         _compatibilityRepoMock.Setup(r => r.GetBySignPairAsync(
                 It.IsAny<GetCompatibilityBySignPairRepositoryQuery>(), It.IsAny<CancellationToken>()))
@@ -321,12 +342,14 @@ public sealed class CompatibilityQueryServiceTests
         _cacheMock.Setup(c => c.SetAsync(It.IsAny<string>(), It.IsAny<CompatibilityData>(),
                 It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+        _cacheMock.Setup(c => c.ReleaseLockAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         CompatibilityQueryService service = CreateService();
         await service.GetOrGenerateCompatibilityAsync(
             ZodiacSign.Aries, ZodiacSign.Taurus, CancellationToken.None);
 
         Assert.NotNull(capturedKey);
-        Assert.Equal("compatibility:Aries:Taurus", capturedKey);
+        Assert.Equal("compatibility:1:2", capturedKey);
     }
 }

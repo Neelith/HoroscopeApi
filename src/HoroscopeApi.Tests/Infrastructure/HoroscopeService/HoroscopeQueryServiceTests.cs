@@ -113,12 +113,16 @@ public sealed class HoroscopeQueryServiceTests
 
         _cacheMock.Setup(c => c.GetAsync<HoroscopeData>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((HoroscopeData?)null);
+        _cacheMock.Setup(c => c.TryAcquireLockAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("lock-value");
         _horoscopeRepoMock.Setup(r => r.GetBySignAndPeriodAsync(
                 It.IsAny<GetHoroscopeBySignAndPeriodRepositoryQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(horoscope);
         _cacheMock.Setup(c => c.SetAsync(It.IsAny<string>(), It.IsAny<HoroscopeData>(),
                 It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+        _cacheMock.Setup(c => c.ReleaseLockAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         var service = CreateService();
         var result = await service.GetOrGenerateHoroscopeAsync(
@@ -137,19 +141,23 @@ public sealed class HoroscopeQueryServiceTests
 
         _cacheMock.Setup(c => c.GetAsync<HoroscopeData>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((HoroscopeData?)null);
+        _cacheMock.Setup(c => c.TryAcquireLockAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("lock-value");
         _horoscopeRepoMock.Setup(r => r.GetBySignAndPeriodAsync(
                 It.IsAny<GetHoroscopeBySignAndPeriodRepositoryQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(horoscope);
         _cacheMock.Setup(c => c.SetAsync(It.IsAny<string>(), It.IsAny<HoroscopeData>(),
                 It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+        _cacheMock.Setup(c => c.ReleaseLockAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         var service = CreateService();
         await service.GetOrGenerateHoroscopeAsync(
             ZodiacSign.Aries, HoroscopePeriod.Daily, date, CancellationToken.None);
 
         _cacheMock.Verify(c => c.SetAsync(
-            It.Is<string>(k => k.Contains("Aries") && k.Contains("Daily") && k.Contains("2024-06-15")),
+            It.Is<string>(k => k.Contains("1") && k.Contains("1") && k.Contains("2024-06-15")),
             It.IsAny<HoroscopeData>(),
             It.IsAny<TimeSpan?>(),
             It.IsAny<CancellationToken>()), Times.Once);
@@ -163,6 +171,8 @@ public sealed class HoroscopeQueryServiceTests
 
         _cacheMock.Setup(c => c.GetAsync<HoroscopeData>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((HoroscopeData?)null);
+        _cacheMock.Setup(c => c.TryAcquireLockAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("lock-value");
 
         _horoscopeRepoMock.SetupSequence(r => r.GetBySignAndPeriodAsync(
                 It.IsAny<GetHoroscopeBySignAndPeriodRepositoryQuery>(), It.IsAny<CancellationToken>()))
@@ -180,6 +190,8 @@ public sealed class HoroscopeQueryServiceTests
         _cacheMock.Setup(c => c.SetAsync(It.IsAny<string>(), It.IsAny<HoroscopeData>(),
                 It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+        _cacheMock.Setup(c => c.ReleaseLockAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         var service = CreateService();
         var result = await service.GetOrGenerateHoroscopeAsync(
@@ -196,12 +208,16 @@ public sealed class HoroscopeQueryServiceTests
 
         _cacheMock.Setup(c => c.GetAsync<HoroscopeData>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((HoroscopeData?)null);
+        _cacheMock.Setup(c => c.TryAcquireLockAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("lock-value");
         _horoscopeRepoMock.Setup(r => r.GetBySignAndPeriodAsync(
                 It.IsAny<GetHoroscopeBySignAndPeriodRepositoryQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Horoscope?)null);
         _generatorMock.Setup(g => g.GenerateDailyHoroscopeAsync(
                 It.IsAny<ZodiacSign>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ko<Horoscope>(HoroscopeErrors.NotFound));
+        _cacheMock.Setup(c => c.ReleaseLockAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         var service = CreateService();
         var result = await service.GetOrGenerateHoroscopeAsync(
@@ -220,18 +236,22 @@ public sealed class HoroscopeQueryServiceTests
         _cacheMock.Setup(c => c.GetAsync<HoroscopeData>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .Callback<string, CancellationToken>((k, _) => capturedKey = k)
             .ReturnsAsync((HoroscopeData?)null);
+        _cacheMock.Setup(c => c.TryAcquireLockAsync(It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("lock-value");
         _horoscopeRepoMock.Setup(r => r.GetBySignAndPeriodAsync(
                 It.IsAny<GetHoroscopeBySignAndPeriodRepositoryQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(BuildHoroscope(date));
         _cacheMock.Setup(c => c.SetAsync(It.IsAny<string>(), It.IsAny<HoroscopeData>(),
                 It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+        _cacheMock.Setup(c => c.ReleaseLockAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         var service = CreateService();
         await service.GetOrGenerateHoroscopeAsync(
             ZodiacSign.Aries, HoroscopePeriod.Daily, date, CancellationToken.None);
 
         Assert.NotNull(capturedKey);
-        Assert.Equal("horoscope:Aries:Daily:2024-06-15", capturedKey);
+        Assert.Equal("horoscope:1:1:2024-06-15", capturedKey);
     }
 }

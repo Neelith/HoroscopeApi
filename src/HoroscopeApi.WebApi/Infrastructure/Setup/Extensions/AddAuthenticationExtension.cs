@@ -1,5 +1,6 @@
 ﻿using HoroscopeApi.Application.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.IdentityModel.Tokens;
 
 namespace HoroscopeApi.WebApi.Infrastructure.Setup.Extensions;
@@ -7,7 +8,8 @@ namespace HoroscopeApi.WebApi.Infrastructure.Setup.Extensions;
 public static class AddAuthenticationExtension
 {
     public static IServiceCollection AddAuthenticationServices(this IServiceCollection services,
-        JwtSettings? jwtSettings)
+        JwtSettings? jwtSettings,
+        IWebHostEnvironment environment)
     {
         if (jwtSettings is null)
         {
@@ -17,7 +19,7 @@ public static class AddAuthenticationExtension
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                options.RequireHttpsMetadata = false; // Set to true in production
+                options.RequireHttpsMetadata = !environment.IsDevelopment();
                 options.Authority = jwtSettings.Authority;
 
                 options.TokenValidationParameters = new TokenValidationParameters

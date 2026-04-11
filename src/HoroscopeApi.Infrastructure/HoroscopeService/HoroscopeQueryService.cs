@@ -23,14 +23,53 @@ internal sealed class HoroscopeQueryService(
         DateOnly date,
         CancellationToken cancellationToken)
     {
-        // Try cache first
-        string cacheKey = $"horoscope:{zodiacSign}:{period}:{date:yyyy-MM-dd}";
+        string cacheKey = $"horoscope:{(int)zodiacSign}:{(int)period}:{date:yyyy-MM-dd}";
+        string lockKey = $"horoscope:lock:{(int)zodiacSign}:{(int)period}:{date:yyyy-MM-dd}";
+
         HoroscopeData? cachedData = await cache.GetAsync<HoroscopeData>(cacheKey, cancellationToken);
         if (cachedData is not null)
         {
             return Result.Ok((cachedData, true));
         }
 
+        string? lockValue = await cache.TryAcquireLockAsync(lockKey, TimeSpan.FromSeconds(30), cancellationToken);
+
+        if (lockValue is null)
+        {
+            await Task.Delay(500, cancellationToken);
+            cachedData = await cache.GetAsync<HoroscopeData>(cacheKey, cancellationToken);
+
+            if (cachedData is not null)
+                return Result.Ok((cachedData, true));
+
+            for (int i = 0; i < 10; i++)
+            {
+                await Task.Delay(1000, cancellationToken);
+                cachedData = await cache.GetAsync<HoroscopeData>(cacheKey, cancellationToken);
+                if (cachedData is not null)
+                    return Result.Ok((cachedData, true));
+            }
+
+            return Result.Ko<(HoroscopeData, bool)>(HoroscopeErrors.NotFound);
+        }
+
+        try
+        {
+            return await GenerateHoroscopeInternalAsync(zodiacSign, period, date, cacheKey, cancellationToken);
+        }
+        finally
+        {
+            await cache.ReleaseLockAsync(lockKey, lockValue, cancellationToken);
+        }
+    }
+
+    private async Task<Result<(HoroscopeData Data, bool IsCached)>> GenerateHoroscopeInternalAsync(
+        ZodiacSign zodiacSign,
+        HoroscopePeriod period,
+        DateOnly date,
+        string cacheKey,
+        CancellationToken cancellationToken)
+    {
         GetHoroscopeBySignAndPeriodRepositoryQuery repositoryQuery = new(zodiacSign, period, date);
 
         Horoscope? horoscope = await horoscopeRepository.GetBySignAndPeriodAsync(repositoryQuery, cancellationToken);
@@ -53,7 +92,10 @@ internal sealed class HoroscopeQueryService(
 
         HoroscopeData data = HoroscopeData.ToHoroscopeData(horoscope);
 
-        await cache.SetAsync(cacheKey, data, cancellationToken: cancellationToken);
+        TimeSpan cacheTtl = date >= DateOnly.FromDateTime(DateTime.UtcNow)
+            ? TimeSpan.FromHours(24)
+            : TimeSpan.FromDays(365);
+        await cache.SetAsync(cacheKey, data, cacheTtl, cancellationToken);
 
         return Result.Ok((data, false));
     }

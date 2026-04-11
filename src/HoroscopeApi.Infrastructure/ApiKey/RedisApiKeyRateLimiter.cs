@@ -25,7 +25,7 @@ internal class RedisApiKeyRateLimiter(
             "Checking rate limit for API key {ApiKeyId}, window key: {WindowKey}, limit: {Limit}",
             apiKeyId, windowKey, limit);
 
-        int currentCount = await IncrementCounterAsync(windowKey, windowDuration, cancellationToken);
+        int currentCount = await IncrementCounterAsync(windowKey, windowDuration, cancellationToken: cancellationToken);
 
         bool isAllowed = currentCount <= limit;
         int remaining = Math.Max(0, limit - currentCount);
@@ -73,25 +73,43 @@ internal class RedisApiKeyRateLimiter(
     private async Task<int> IncrementCounterAsync(
         string windowKey,
         TimeSpan windowDuration,
-        CancellationToken cancellationToken)
+        int maxRetries = 3,
+        CancellationToken cancellationToken = default)
     {
-        string? currentValue = await distributedCache.GetStringAsync(windowKey, cancellationToken);
-
-        int count = 1;
-        if (currentValue is not null && int.TryParse(currentValue, out int existingCount))
+        for (int attempt = 0; attempt < maxRetries; attempt++)
         {
-            count = existingCount + 1;
-        }
+            string? currentValue = await distributedCache.GetStringAsync(windowKey, cancellationToken);
+            long newCount = currentValue == null ? 1 : long.Parse(currentValue) + 1;
 
-        await distributedCache.SetStringAsync(
-            windowKey,
-            count.ToString(),
-            new DistributedCacheEntryOptions
+            var options = new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = windowDuration
-            },
-            cancellationToken);
+            };
 
-        return count;
+            if (currentValue == null)
+            {
+                try
+                {
+                    await distributedCache.SetStringAsync(windowKey, newCount.ToString(), options, cancellationToken);
+                    return (int)newCount;
+                }
+                catch (Exception) when (attempt < maxRetries - 1)
+                {
+                    continue;
+                }
+            }
+
+            try
+            {
+                await distributedCache.SetStringAsync(windowKey, newCount.ToString(), options, cancellationToken);
+                return (int)newCount;
+            }
+            catch (Exception) when (attempt < maxRetries - 1)
+            {
+                continue;
+            }
+        }
+
+        return 1;
     }
 }

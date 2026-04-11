@@ -8,4 +8,10 @@ public interface IRedisCache
         CancellationToken cancellationToken = default);
 
     Task RemoveAsync(string key, CancellationToken cancellationToken = default);
+
+    Task<long> IncrementAsync(string key, TimeSpan expiration, CancellationToken cancellationToken = default);
+
+    Task<string?> TryAcquireLockAsync(string key, TimeSpan lockDuration, CancellationToken cancellationToken = default);
+
+    Task<bool> ReleaseLockAsync(string key, string lockValue, CancellationToken cancellationToken = default);
 }
