@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HoroscopeApi.Application.Services.ApiKey;
 using HoroscopeApi.Domain.ApiKeys;
 using HoroscopeApi.WebApi.Constants;
@@ -45,7 +46,7 @@ public class ApiKeyAuthorizationHandler(
         if (apiKeyValidationResult.IsFailure)
         {
             logger.LogWarning("API key validation failed. TraceId: {TraceId}",
-                httpContext.TraceIdentifier);
+                Activity.Current?.TraceId.ToString() ?? httpContext.TraceIdentifier);
             context.Fail();
             return;
         }
@@ -55,7 +56,7 @@ public class ApiKeyAuthorizationHandler(
         if (apiKeyValidation.IsNotValid)
         {
             logger.LogWarning("API key is invalid or expired. TraceId: {TraceId}",
-                httpContext.TraceIdentifier);
+                Activity.Current?.TraceId.ToString() ?? httpContext.TraceIdentifier);
             context.Fail();
             return;
         }

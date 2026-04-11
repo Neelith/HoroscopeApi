@@ -1,5 +1,6 @@
 using HoroscopeApi.Application.Services.AI;
 using HoroscopeApi.Application.Services.CompatibilityService;
+using HoroscopeApi.Infrastructure.Middlewares;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,8 +16,12 @@ public static class AddHuggingFaceExtension
         IConfigurationSection settingsSection = configuration.GetSection("HuggingFace");
         services.Configure<HuggingFaceSettings>(settingsSection);
 
-        // Register HttpClient for HuggingFaceClient
-        services.AddHttpClient<IHuggingFaceClient, HuggingFaceClient>();
+        // Register tracing handler
+        services.AddTransient<TracingDelegatingHandler>();
+
+        // Register HttpClient for HuggingFaceClient with tracing handler
+        services.AddHttpClient<IHuggingFaceClient, HuggingFaceClient>()
+            .AddHttpMessageHandler<TracingDelegatingHandler>();
 
         // Register horoscope services
         services.AddScoped<IHoroscopePromptBuilder, HoroscopePromptBuilder>();

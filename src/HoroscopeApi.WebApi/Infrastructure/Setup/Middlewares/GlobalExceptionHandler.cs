@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HoroscopeApi.Application.Services.ApiKey;
 using HoroscopeApi.WebApi.Constants;
 using Microsoft.AspNetCore.Diagnostics;
@@ -28,14 +29,27 @@ internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> log
             Title = "Server failure"
         };
 
-        string traceId = httpContext.Request.Headers.TryGetValue(Headers.Trace, out StringValues traceHeaderValue) &&
-                         !string.IsNullOrWhiteSpace(traceHeaderValue)
-            ? traceHeaderValue.ToString()
-            : httpContext.TraceIdentifier;
+        string traceId = Activity.Current?.TraceId.ToString() ?? httpContext.TraceIdentifier;
+        string spanId = Activity.Current?.SpanId.ToString() ?? "";
+        string correlationId = httpContext.Request.Headers.TryGetValue(Headers.Correlation, out StringValues correlationHeader) &&
+                               !string.IsNullOrWhiteSpace(correlationHeader)
+            ? correlationHeader.ToString()
+            : Guid.NewGuid().ToString();
+        string? tracestate = httpContext.Request.Headers.TryGetValue(Headers.TraceState, out StringValues tracestateHeader) &&
+                             !string.IsNullOrWhiteSpace(tracestateHeader)
+            ? tracestateHeader.ToString()
+            : null;
 
         problemDetails.Extensions.Add("traceId", traceId);
+        problemDetails.Extensions.Add("spanId", spanId);
+        problemDetails.Extensions.Add("correlationId", correlationId);
 
         httpContext.Response.StatusCode = problemDetails.Status.Value;
+
+        if (!string.IsNullOrEmpty(tracestate))
+        {
+            httpContext.Response.Headers.TryAdd(Headers.TraceState, tracestate);
+        }
 
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
@@ -64,12 +78,25 @@ internal sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> log
             Title = "Too Many Requests"
         };
 
-        string traceId = httpContext.Request.Headers.TryGetValue(Headers.Trace, out StringValues traceHeaderValue) &&
-                         !string.IsNullOrWhiteSpace(traceHeaderValue)
-            ? traceHeaderValue.ToString()
-            : httpContext.TraceIdentifier;
+        string traceId = Activity.Current?.TraceId.ToString() ?? httpContext.TraceIdentifier;
+        string spanId = Activity.Current?.SpanId.ToString() ?? "";
+        string correlationId = httpContext.Request.Headers.TryGetValue(Headers.Correlation, out StringValues correlationHeader) &&
+                               !string.IsNullOrWhiteSpace(correlationHeader)
+            ? correlationHeader.ToString()
+            : Guid.NewGuid().ToString();
+        string? tracestate = httpContext.Request.Headers.TryGetValue(Headers.TraceState, out StringValues tracestateHeader) &&
+                             !string.IsNullOrWhiteSpace(tracestateHeader)
+            ? tracestateHeader.ToString()
+            : null;
 
         problemDetails.Extensions.Add("traceId", traceId);
+        problemDetails.Extensions.Add("spanId", spanId);
+        problemDetails.Extensions.Add("correlationId", correlationId);
+
+        if (!string.IsNullOrEmpty(tracestate))
+        {
+            httpContext.Response.Headers.TryAdd(Headers.TraceState, tracestate);
+        }
 
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 

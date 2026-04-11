@@ -1,4 +1,5 @@
-﻿using HoroscopeApi.WebApi.Constants;
+using System.Diagnostics;
+using HoroscopeApi.WebApi.Constants;
 using Microsoft.Extensions.Primitives;
 
 namespace HoroscopeApi.WebApi.Infrastructure.Setup.Extensions;
@@ -23,12 +24,16 @@ internal static class AddProblemDetailsExtension
                     context.ProblemDetails.Extensions.TryAdd("endpoint", $"{method} {instance}");
                 }
 
-                // Add traceId property
-                string traceId = httpContext.Request.Headers.TryGetValue(Headers.Trace, out StringValues traceHeader)
-                    ? traceHeader.ToString()
-                    : httpContext.TraceIdentifier;
+                string traceId = Activity.Current?.TraceId.ToString() ?? httpContext.TraceIdentifier;
+                string spanId = Activity.Current?.SpanId.ToString() ?? "";
+                string correlationId = httpContext.Request.Headers.TryGetValue(Headers.Correlation, out StringValues correlationHeader) &&
+                                        !string.IsNullOrWhiteSpace(correlationHeader)
+                    ? correlationHeader.ToString()
+                    : Guid.NewGuid().ToString();
 
                 context.ProblemDetails.Extensions.TryAdd("traceId", traceId);
+                context.ProblemDetails.Extensions.TryAdd("spanId", spanId);
+                context.ProblemDetails.Extensions.TryAdd("correlationId", correlationId);
             });
 
         return services;
