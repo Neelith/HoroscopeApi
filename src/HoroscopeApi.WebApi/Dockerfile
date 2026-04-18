@@ -14,7 +14,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY . .
 RUN dotnet restore "./src/HoroscopeApi.WebApi/HoroscopeApi.WebApi.csproj"
-WORKDIR "/src/HoroscopeApi.WebApi"
+WORKDIR "/src/src/HoroscopeApi.WebApi"
 RUN dotnet build "HoroscopeApi.WebApi.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
