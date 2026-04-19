@@ -34,7 +34,7 @@ services:
       - JwtSettings__Issuer=https://identity.alessandroaverna.com/realms/whiletrue
       - JwtSettings__Audience=account
     ports:
-      - "8080:8080"
+      - "9080:8080"
     networks:
       - horoscope-internal
       - dokploy-network
