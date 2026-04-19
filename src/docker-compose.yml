@@ -34,7 +34,7 @@ services:
       - JwtSettings__Issuer=https://identity.alessandroaverna.com/realms/whiletrue
       - JwtSettings__Audience=account
       - ApiKeySettings__Secret=${API_KEY_SECRET}
-      - HuggingFaceSettings__ApiKey=${HUGGING_FACE_API_KEY}
+      - HuggingFace__ApiKey=${HUGGING_FACE_API_KEY}
     ports:
       - "9080:8080"
     networks:
