@@ -33,6 +33,7 @@ services:
       - JwtSettings__Authority=https://identity.alessandroaverna.com/realms/whiletrue
       - JwtSettings__Issuer=https://identity.alessandroaverna.com/realms/whiletrue
       - JwtSettings__Audience=account
+      - ApiKeySettings__Secret=${API_KEY_SECRET}
     ports:
       - "9080:8080"
     networks:

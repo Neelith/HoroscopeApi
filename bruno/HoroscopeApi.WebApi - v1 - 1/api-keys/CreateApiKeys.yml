@@ -14,14 +14,14 @@ http:
       {
         "commands": [
           {
-            "name": "ciao",
-            "type": 1,
-            "rateLimitType": 1,
-            "rateLimit": 1,
+            "name": "rapidapi",
+            "type": 0,
+            "rateLimitType": 0,
             "scopes": [
-              "compatibilities"
-            ],
-            "expiresAtUtc":"2027-04-02T16:57:05.639Z"
+              "zodiac-signs",
+              "compatibilities",
+              "horoscopes"
+            ]
           }
         ]
       }
