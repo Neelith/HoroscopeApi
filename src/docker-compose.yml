@@ -23,7 +23,7 @@ services:
     restart: unless-stopped
 
   api:
-    image: ghcr.io/neelith/horoscopeapi:latest
+    image: ghcr.io/neelith/horoscopeapi:1.2.0
     container_name: horoscope_api
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
