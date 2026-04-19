@@ -11,7 +11,6 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY "./HoroscopeApi.Shared" "./HoroscopeApi.Shared"
 COPY "./HoroscopeApi.Domain" "./HoroscopeApi.Domain"
 COPY "./HoroscopeApi.Application" "./HoroscopeApi.Application"
 COPY "./HoroscopeApi.Infrastructure" "./HoroscopeApi.Infrastructure"
