@@ -44,7 +44,7 @@ services:
       - postgres
       - redis
     restart: unless-stopped
-    no-cache: true
+    pull_policy: always
 
 networks:
   horoscope-internal:
