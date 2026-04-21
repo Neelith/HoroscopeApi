@@ -15,15 +15,12 @@ internal static class AddOpenApiExtension
 
     public static void UseOpenApi(this WebApplication app)
     {
-        if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Local")
-        {
-            app.MapOpenApi();
+        app.MapOpenApi();
 
-            app.UseSwaggerUI(options =>
-            {
-                options.SwaggerEndpoint("/openapi/v1.json", "v1");
-                options.RoutePrefix = "openapi";
-            });
-        }
+        app.UseSwaggerUI(options =>
+        {
+            options.SwaggerEndpoint("/openapi/v1.json", "v1");
+            options.RoutePrefix = "openapi";
+        });
     }
 }
