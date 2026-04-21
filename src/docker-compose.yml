@@ -23,7 +23,7 @@ services:
     restart: unless-stopped
 
   api:
-    image: ghcr.io/neelith/horoscopeapi:1.3.0
+    image: ghcr.io/neelith/horoscopeapi:latest
     container_name: horoscope_api
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
@@ -44,6 +44,7 @@ services:
       - postgres
       - redis
     restart: unless-stopped
+    no-cache: true
 
 networks:
   horoscope-internal:
