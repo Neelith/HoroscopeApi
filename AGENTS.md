@@ -30,52 +30,45 @@ Domain <-- Application <-- Infrastructure <-- WebApi
 - **Unit of Work** pattern (`ApplicationDbContext` implements `IUnitOfWork`)
 - **Minimal API** with Carter endpoint modules (no controllers)
 - **Feature-folder** organization under `Application/Features/`
-- **Rich domain model** with factory methods (`Create`) that return `Result<T>` for validation
+- **Rich domain model** with factory methods (`Create`) that return `Result<T>` for validation (most entities). Exception: `ApiKey` and `ApiKeyScope` use a simpler pattern with `required` properties and public setters.
+- **Domain events** — base `Entity` class supports `Raise()` and `ClearDomainEvents()`, with `IDomainEvent` and `IDomainEventHandler` interfaces
 - **Error metadata pattern** — domain errors carry `Metadata` dictionaries with HTTP status codes (`ErrorConsts.ErrorType`), mapped to `ProblemDetails` responses via `ResultExtensions`
 
-## Build
+## Naming Conventions
 
-Always build the solution using the `.slnx` file:
+### Features (Application layer)
 
-```bash
-dotnet build src/src.slnx
-```
+Each feature lives in a folder under `Application/Features/{Resource}/` and contains up to three files:
 
-## Migrations
+| File        | Naming Pattern                                                          |
+|-------------|-------------------------------------------------------------------------|
+| Request DTO | `{Method}{Resource}Query` (GET) or `{Method}{Resource}Command` (others) |
+| Handler     | `{Method}{Resource}QueryHandler` or `{Method}{Resource}CommandHandler`  |
+| Validator   | `{Method}{Resource}QueryValidator` or `{Method}{Resource}CommandValidator` |
 
-Every EF Core migration command **must** use the `--project`, `--startup-project`, and `-o` flags.
+**Queries** are used exclusively for `GET` operations. All other HTTP methods use **Commands**.
 
-Add a migration:
+Parameterless queries (records with no properties) are exempt from the three-file requirement — they have no validator.
 
-```bash
-dotnet ef migrations add <MigrationName> \
-  --project src/HoroscopeApi.Infrastructure \
-  --startup-project src/HoroscopeApi.WebApi \
-  -o Persistence/Migrations
-```
+Validators **must** always contain meaningful validation rules. Empty validators (with no rules defined) are not permitted.
 
-Update the database:
+### Repository DTOs (Domain layer)
 
-```bash
-dotnet ef database update \
-  --project src/HoroscopeApi.Infrastructure \
-  --startup-project src/HoroscopeApi.WebApi
-```
+Each repository method has its own dedicated DTO, suffixed with `RepositoryQuery` (for reads) or `RepositoryCommand` (for writes):
 
-Remove the last migration:
+- `GetZodiacSignBySignRepositoryQuery`
+- `GetHoroscopesByDateRangeRepositoryQuery`
+- `UpsertApiKeysRepositoryCommand`
 
-```bash
-dotnet ef migrations remove \
-  --project src/HoroscopeApi.Infrastructure \
-  --startup-project src/HoroscopeApi.WebApi
-```
+### Domain Errors
 
-Do **not** run `dotnet ef` commands without these flags. The DbContext lives in Infrastructure but the connection string
-is resolved from WebApi.
+Each aggregate has a static `{Entity}Errors` class with `Error` properties carrying metadata dictionaries.
+
+**Examples**: `HoroscopeErrors.NotFound`, `ZodiacSignErrors.InvalidName`, `CompatibilityErrors.InvalidScore`
 
 ## Testing
 
-Run all tests targeting the `.slnx` file:
+Run tests via the solution file:
 
 ```bash
 dotnet test src/src.slnx
@@ -83,10 +76,9 @@ dotnet test src/src.slnx
 
 ### Rules
 
-- Every new feature or change **must** include corresponding unit tests.
-- Test project structure mirrors the source layers: `Tests/Domain/`, `Tests/Application/Features/`,
-  `Tests/Infrastructure/`.
-- Use **xUnit** for test framework, **Moq** for mocking, and **FluentValidation** for validator tests.
+- Every feature/change **must** include corresponding unit tests.
+- Test project mirrors source layers: `Tests/Domain/`, `Tests/Application/Features/`, `Tests/Infrastructure/`.
+- Use **xUnit** for framework, **Moq** for mocking, **FluentValidation** for validator tests.
 
 ### Test Naming Conventions
 
@@ -98,65 +90,8 @@ dotnet test src/src.slnx
 | Application validator                | `{Method}{Resource}QueryValidatorTests.cs`     |
 | Infrastructure service               | `{ServiceClass}Tests.cs`                       |
 
-**Examples**: `HoroscopeCreateTests.cs`, `ZodiacSignInfoIsDateInRangeTests.cs`, `GetDailyHoroscopeQueryHandlerTests.cs`,
-`GetDailyHoroscopeQueryValidatorTests.cs`, `RedisCacheTests.cs`
-
-## Naming Conventions
-
-### Features (Application layer)
-
-Each feature lives in its own folder under `Application/Features/{Resource}/` and contains exactly three files:
-
-| File        | Naming Pattern                                                             |
-|-------------|----------------------------------------------------------------------------|
-| Request DTO | `{Method}{Resource}Query` or `{Method}{Resource}Command`                   |
-| Handler     | `{Method}{Resource}QueryHandler` or `{Method}{Resource}CommandHandler`     |
-| Validator   | `{Method}{Resource}QueryValidator` or `{Method}{Resource}CommandValidator` |
-
-**Queries** are used exclusively for `GET` operations. All other HTTP methods (`POST`, `PUT`, `PATCH`, `DELETE`) use
-**Commands**.
-
-Parameterless queries (records with no properties) are exempt from the three-file requirement — they do not need a
-validator.
-
-Validators **must** always contain meaningful validation rules. Empty validators (with no rules defined) are not
-permitted.
-
-### Repository DTOs (Domain layer)
-
-Each repository method has its own dedicated DTO, suffixed with `RepositoryQuery` (for reads) or `RepositoryCommand` (
-for writes):
-
-- `GetZodiacSignBySignRepositoryQuery`
-- `GetHoroscopesByDateRangeRepositoryQuery`
-- `UpsertApiKeysRepositoryCommand`
-
-### Endpoints (WebApi layer)
-
-Endpoint modules implement `IEndpoints` (extends `ICarterModule`) and live under `Endpoints/{Resource}/`. Each module
-groups related routes under a `MapGroup` with lowercase URL prefix, authorization policy, and OpenAPI tags.
-
-| File naming                 | Class naming                 | Route group       |
-|-----------------------------|------------------------------|-------------------|
-| `HoroscopesEndpoints.cs`   | `HoroscopesEndpoints`        | `horoscopes`      |
-| `ApiKeysEndpoints.cs`      | `ApiKeysEndpoints`           | `api-keys`        |
-| `ZodiacSignsEndpoints.cs`  | `ZodiacSignsEndpoints`       | `zodiac-signs`    |
-| `CompatibilitiesEndpoints.cs` | `CompatibilitiesEndpoints` | `compatibilities` |
-
-### Domain Errors
-
-Each aggregate has a static `{Entity}Errors` class with `Error` properties. Errors include metadata dictionaries mapping
-to HTTP status codes via `ErrorConsts.ErrorType`.
-
-**Examples**: `HoroscopeErrors.NotFound`, `ZodiacSignErrors.InvalidName`, `CompatibilityErrors.InvalidScore`
-
-### Feature Examples
-
-| Endpoint                | Request DTO              | Handler                         | Validator                         |
-|-------------------------|--------------------------|---------------------------------|-----------------------------------|
-| `GET /horoscopes/daily` | `GetDailyHoroscopeQuery` | `GetDailyHoroscopeQueryHandler` | `GetDailyHoroscopeQueryValidator` |
-| `POST /api-keys`        | `CreateApiKeysCommand`   | `CreateApiKeysCommandHandler`   | `CreateApiKeysCommandValidator`   |
-| `GET /api-keys`         | `GetApiKeysQuery`        | `GetApiKeysQueryHandler`        | `GetApiKeysQueryValidator`        |
+**Examples**: `HoroscopeCreateTests.cs`, `ZodiacSignInfoIsDateInRangeTests.cs`,
+`GetDailyHoroscopeQueryHandlerTests.cs`, `GetDailyHoroscopeQueryValidatorTests.cs`, `RedisCacheTests.cs`
 
 ## Core Business Logic
 
@@ -183,7 +118,7 @@ authentication flows through Keycloak JWTs.
 **Purpose**: Reference data for a zodiac sign — its date range, element, quality, polarity, ruling planet, and
 description.
 
-**Key Properties**: `Sign` (enum), `Name`, `Symbol`, `StartMonth/StartDay`, `EndMonth/EndDay`, `Element`, `Quality`,
+**Key Properties**: `Sign` (enum), `Name`, `Symbol`, `StartMonth`/`StartDay`, `EndMonth`/`EndDay`, `Element`, `Quality`,
 `Polarity`, `RulingPlanet`, `Description`
 
 **Relationships**: Has many `Horoscope` records. Referenced by `Compatibility` (as both first and second sign).
